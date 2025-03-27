@@ -8,7 +8,9 @@ namespace mvc.Repositories
     {
         public BussinessRepository(ProjectContext context) : base(context)
         {
+
         }
+
 
     }
 }
