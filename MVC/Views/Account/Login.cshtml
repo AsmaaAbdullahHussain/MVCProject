@@ -1,0 +1,62 @@
+﻿@model LoginViewModel
+@{
+    ViewData["Title"] = "Login"; //headder & footer come from _ViewStart bydefault then layout
+
+    }
+    
+<main >
+    <div class="vr-auth">
+        <div class="vr-auth__container">
+            <div class="vr-auth__content">
+                <div class="vr-auth__header">
+                    <h1 class="vr-auth__title">Sign In</h1>
+                    <p class="vr-auth__subtitle">Welcome back! Please login to your account</p>
+                </div>
+
+                <form asp-action="Login" asp-controller="Account" method="post" class="vr-auth__form">
+                    @Html.AntiForgeryToken()
+
+                    <div class="vr-form-group">
+                        <label asp-for="Name" class="vr-label"></label>
+                        <div class="vr-input-group">
+                            <span class="vr-input-group__addon"><i class="fas fa-user"></i></span>
+                            <input asp-for="Name" class="vr-input" placeholder="Enter your username" required />
+                        </div>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="vr-form-group">
+                        <label asp-for="Password" class="vr-label"></label>
+                        <div class="vr-input-group">
+                            <span class="vr-input-group__addon"><i class="fas fa-lock"></i></span>
+                            <input asp-for="Password" class="vr-input" placeholder="Enter your password" required />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="vr-form-group d-flex align-items-center justify-content-between">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label">Remember Me</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="vr-btn vr-btn--primary vr-auth__submit">
+                        <span>Login</span>
+                        <div class="vr-spinner vr-spinner--sm"></div>
+                    </button>
+                </form>
+
+                <div class="vr-auth__footer">
+                    <p>
+                        Don’t have an account?
+                        <a href="~/Account/Register" class="vr-auth__link">
+                            <span>Create Account</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

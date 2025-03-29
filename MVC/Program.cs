@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using mvc.Models.Authorize;
 using MVC.Models;
 
 namespace mvc
@@ -11,6 +13,25 @@ namespace mvc
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
+               options =>
+               {
+                   options.Password.RequireDigit = false;
+
+
+
+                   options.Password.RequireLowercase = false;
+                   options.Password.RequireUppercase = false;
+                   options.Password.RequireNonAlphanumeric = false;
+                   options.User.RequireUniqueEmail = true;
+
+
+
+               }
+
+               ).AddEntityFrameworkStores<ProjectContext>();
+
+
             //register services
             builder.Services.AddDbContext<ProjectContext>(options =>
             {

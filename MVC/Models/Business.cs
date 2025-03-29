@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using mvc.Enums;
+using mvc.Models.Authorize;
 
 namespace mvc.Models
 {
@@ -44,11 +45,11 @@ namespace mvc.Models
 
         public DateTime? SubscriptionEndDate { get; set; }
 
-       // public List<MenuItem> MenuItems { get; set; }
+        // public List<MenuItem> MenuItems { get; set; }
 
         //// Navigation Properties
-        //[ForeignKey("OwnerId")]
-        //public virtual User Owner { get; set; }
+        [ForeignKey("OwnerId")]
+        public virtual ApplicationUser Owner { get; set; }
 
         [ForeignKey("CategoryId")]
         public  Category? Category { get; set; }

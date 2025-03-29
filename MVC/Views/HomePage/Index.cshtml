@@ -1,0 +1,83 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Vyrlo</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="/css/main/variables.css">
+    <link rel="stylesheet" href="/css/main/reset.css">
+    <link rel="stylesheet" href="/css/main/utilities.css">
+    <link rel="stylesheet" href="/css/main/animations.css">
+    <link rel="stylesheet" href="/css/main/style.css">
+
+    <!-- Component Styles -->
+    <link rel="stylesheet" href="/css/components/header.css">
+    <link rel="stylesheet" href="/css/components/footer.css">
+
+    <!-- Page Styles -->
+    <link rel="stylesheet" href="/css/pages/auth.css">
+    <style>
+        .text-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 6px 10px;
+            border-radius: 5px;
+            margin-top: 6px;
+            font-size: 0.875rem;
+            display: block;
+        }
+
+            .text-danger:empty {
+                display: none;
+            }
+
+        .div-text-danger {
+            color: red;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+    </style>
+</head>
+<body>
+    <main class="vr-main">
+        <div class="vr-auth">
+            <div class="vr-auth__container">
+                <div class="vr-auth__content">
+                    <div class="vr-auth__header">
+<h1>Index</h1>
+<p>User ID: @ViewBag.UserId</p>
+
+                        <!-- Toast Container -->
+                        <div class="vr-toast-container" id="toastContainer"></div>
+                        <div class="vr-auth__footer">
+                       
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </main>
+                        <!-- Scripts -->
+
+</body>
+</html>
+
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+

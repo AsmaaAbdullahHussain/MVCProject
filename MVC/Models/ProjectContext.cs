@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using mvc.Models;
+using mvc.Models.Authorize;
 
 namespace MVC.Models
 {
-    public class ProjectContext:DbContext
+    public class ProjectContext:IdentityDbContext<ApplicationUser>
     {
         public ProjectContext(DbContextOptions<ProjectContext> options) : base(options)
         {
