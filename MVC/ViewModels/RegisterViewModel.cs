@@ -24,6 +24,6 @@ namespace mvc.ViewModels
         [EmailAddress(ErrorMessage = "Please enter a valid email address ✉️")]
         public string Email { get; set; }
 
-        public string Role { get; set; }
+       // public string Role { get; set; }
     }
 }

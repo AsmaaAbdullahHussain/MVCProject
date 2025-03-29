@@ -24,18 +24,18 @@
         <button class="vr-header__menu-trigger" id="menuTrigger" aria-label="Toggle menu">
             <span class="vr-header__menu-icon"></span>
         </button>
+        <!-- Main Navigation -->
 
+        <nav class="vr-header__nav" id="mainNav">
+            <a href="/HomePage/Index" class="vr-header__link" data-page="home">Home</a>
+            <a href="/pages/listings.html" class="vr-header__link" data-page="listings">Listings</a>
+            <a href="/pages/about.html" class="vr-header__link" data-page="about">About</a>
+            <a href="/pages/contact.html" class="vr-header__link" data-page="contact">Contact</a>
+        </nav>
 
         @if(User.Identity.IsAuthenticated)
         {
-            <!-- Main Navigation -->
-
-            <nav class="vr-header__nav" id="mainNav">
-                <a href="/HomePage/Index" class="vr-header__link" data-page="home">Home</a>
-                <a href="/pages/listings.html" class="vr-header__link" data-page="listings">Listings</a>
-                <a href="/pages/about.html" class="vr-header__link" data-page="about">About</a>
-                <a href="/pages/contact.html" class="vr-header__link" data-page="contact">Contact</a>
-            </nav>
+          
             <div class="vr-header__welcome text-success fw-semibold ms-3">
                 Welcome, @User.Identity.Name!
             </div>
@@ -57,10 +57,10 @@
                 </a>
             </div>
         }
-        @if(User.IsInRole("admin")){
-            <a href="/role/index.html" class="vr-header__link" data-page="addrole">Addrole</a>
+     @*    @if(User.IsInRole("admin")){ *@
+     @*        <a href="/role/index.html" class="vr-header__link" data-page="addrole">Addrole</a> *@
 
-        }
+     @* //   } *@
   
 
         <!-- Auth Section -->

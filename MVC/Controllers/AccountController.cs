@@ -72,7 +72,7 @@ namespace mvc.Controllers
 
                  
                         // Add role
-                        await _userManger.AddToRoleAsync(userApp, UserFromReq.Role);//AddToRoleAsync ليس  case sestive
+                      //  await _userManger.AddToRoleAsync(userApp, UserFromReq.Role);//AddToRoleAsync ليس  case sestive
 
                     await _sinInManger.SignInAsync(userApp, isPersistent: false);
 
