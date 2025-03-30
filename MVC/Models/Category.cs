@@ -13,7 +13,7 @@ namespace mvc.Models
         [Required]
         public string Icon { get; set; }
 
-        public List<string> DefaultFeatures { get; set; }
+        public List<string> CategoryFeatures { get; set; } 
 
         // Navigation Properties
         public ICollection<Business>? Businesses { get; set; }
