@@ -1,0 +1,77 @@
+﻿using Microsoft.EntityFrameworkCore;
+using mvc.RepoInterfaces;
+using MVC.Models;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+namespace mvc.Repositories
+{
+    public class GeniricRepository<Id,T>: IGeniricRepository<Id, T> where T : class
+    {
+        private ProjectContext _context;
+        protected DbSet<T> dbSet;
+        public GeniricRepository(ProjectContext context)
+        {
+            _context = context;
+            dbSet = context.Set<T>();
+        }
+        public async Task AddAsync(T entity)
+        {
+             await dbSet.AddAsync(entity);
+        }
+        public async Task<T> GetByIdAsync(Id id)
+        {
+            return await dbSet.FindAsync(id);
+        }
+
+        public IQueryable<T> GetAll(int? pageNumber, int? size)
+        {
+            if (pageNumber.HasValue && size.HasValue)
+            {
+                return dbSet.Skip((pageNumber.Value - 1) * size.Value).Take(size.Value);
+            }
+            return dbSet;
+        }
+        public IQueryable<T> Search(Expression<Func<T, bool>> predicate,int? pageNumber ,int? size)
+        {
+            IQueryable<T> query = dbSet.Where(predicate);
+            if(pageNumber.HasValue && size.HasValue)
+            {
+                return query.Skip((pageNumber.Value - 1) * size.Value).Take(size.Value);
+            }
+            return query;
+        }
+      
+        public async Task<int> CountAsync()
+        {
+            return await dbSet.CountAsync();
+        }
+
+        public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate)
+        {
+            return await dbSet.CountAsync(predicate);
+        }
+
+        public void Update(T updated)
+        {
+            dbSet.Update(updated);
+        }
+        public async Task DeleteAsync(Id id)
+        {
+            T entity = await GetByIdAsync(id);
+            if (entity != null)
+            {
+                dbSet.Remove(entity);
+            }
+        }
+        public async Task<int> SaveAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        
+
+
+    }
+}
