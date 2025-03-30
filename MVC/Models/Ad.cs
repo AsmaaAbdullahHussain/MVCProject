@@ -1,6 +1,6 @@
-﻿using mvc.Enums;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace mvc.Models
 {
@@ -33,7 +33,7 @@ namespace mvc.Models
 
         // Navigation Properties
         [ForeignKey("BusinessId")]
-        public Business? Business { get; set; }
+        public virtual Business Business { get; set; }
 
         public Ad()
         {
@@ -41,4 +41,17 @@ namespace mvc.Models
             IsActive = true;
         }
     }
-}
+
+    public enum AdType
+    {
+        BusinessAd,
+        ExternalAd
+    }
+
+    public enum PackageType
+    {
+
+        Weekly,
+        Monthly
+    }
+} 
