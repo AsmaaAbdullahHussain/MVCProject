@@ -29,7 +29,7 @@ namespace mvc.Models
         [Required]
         public string MainImage { get; set; }
 
-        public List<string> Gallery { get; set; } //table Gallery (id,imgUrl,businessId)
+        //public List<string> Gallery { get; set; } //table Gallery (id,imgUrl,businessId)
 
         [Required]
         public string Latitude { get; set; }
@@ -40,20 +40,22 @@ namespace mvc.Models
         [Required]
         public string Address { get; set; }  
 
-        public List<string> Features { get; set; } //table  (id,describtion,bid)
+        //public List<string> Features { get; set; } //table  (id,describtion,bid)
 
-        [Required]
-        public BusinessType BusinessType { get; set; } //enum //user can`t change it
+        //========================================================
 
-        public bool IsActive { get; set; } //user can`t change it
+        //[Required]
+        //public BusinessType BusinessType { get; set; } //enum //user can`t change it
+
+        public bool IsActive { get; set; } //user can`t change it 
 
         public DateTime? SubscriptionEndDate { get; set; }  //user can`t change it
 
         // public List<MenuItem> MenuItems { get; set; }
 
-        //// Navigation Properties
-
-
+        [ForeignKey("Package")]
+        public int PackageId { get; set; }
+        public Package Package { get; set; } 
 
 
         public  ICollection<Review>? Reviews { get; set; }

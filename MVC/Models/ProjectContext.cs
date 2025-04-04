@@ -17,5 +17,8 @@ namespace MVC.Models
         public DbSet<Review> Reviews { get; set; }
         public DbSet<OpeningHour> OpeningHours { get; set; }
         public DbSet<Ad> Ads { get; set; }
+        public DbSet<Package> Packages { get; set; }
+        public DbSet<Checkout> Checkouts { get; set; }
+
     }
 }

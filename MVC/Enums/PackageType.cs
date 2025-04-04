@@ -1,8 +1,7 @@
 ﻿namespace mvc.Enums
 {
-    public enum PackageType
+    public enum PackageType//delete
     {
-        Daily,
         Weekly,
         Monthly
     }

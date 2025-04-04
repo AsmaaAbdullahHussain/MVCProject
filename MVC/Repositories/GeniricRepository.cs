@@ -25,20 +25,20 @@ namespace mvc.Repositories
             return await dbSet.FindAsync(id);
         }
 
-        public IQueryable<T> GetAll(int? pageNumber, int? size)
+        public IQueryable<T> GetAll(int size = 0 ,int pageNumber = 1)
         {
-            if (pageNumber.HasValue && size.HasValue)
+            if (pageNumber > 0 && size > 0)
             {
-                return dbSet.Skip((pageNumber.Value - 1) * size.Value).Take(size.Value);
+                return dbSet.Skip((pageNumber - 1) * size).Take(size);
             }
             return dbSet;
         }
-        public IQueryable<T> Search(Expression<Func<T, bool>> predicate,int? pageNumber ,int? size)
+        public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate,int size=0, int pageNumber = 1)
         {
             IQueryable<T> query = dbSet.Where(predicate);
-            if(pageNumber.HasValue && size.HasValue)
+            if(pageNumber>0 && size>0)
             {
-                return query.Skip((pageNumber.Value - 1) * size.Value).Take(size.Value);
+                return query.Skip((pageNumber - 1) * size).Take(size);
             }
             return query;
         }

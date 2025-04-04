@@ -1,4 +1,5 @@
-﻿using mvc.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using mvc.Models;
 using mvc.RepoInterfaces;
 using MVC.Models;
 

@@ -9,9 +9,10 @@ namespace mvc.Models
         public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; }
+        public string Email { get; set; }
 
         [Required]
+        [ForeignKey("Business")]
         public int BusinessId { get; set; }
 
         [Required, Range(1, 5)]
@@ -21,13 +22,7 @@ namespace mvc.Models
         public string Comment { get; set; }
 
         public DateTime CreatedAt { get; set; }
-
-        //// Navigation Properties
-        //[ForeignKey("UserId")]
-        //public virtual User User { get; set; }
-
-        [ForeignKey("BusinessId")]
-        public Business? Business { get; set; }
+        public Business Business { get; set; }
 
         public Review()
         {
