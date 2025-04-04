@@ -55,7 +55,7 @@ namespace mvc.Models
 
 
 
-
+       
         public  ICollection<Review>? Reviews { get; set; }
         public  ICollection<OpeningHour>? OpeningHours { get; set; }
         public  ICollection<Ad>? Advertisements { get; set; }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using mvc.Models.CategoryValidation;
+using System.ComponentModel.DataAnnotations;
 
 namespace mvc.Models
 {
@@ -8,14 +9,16 @@ namespace mvc.Models
         public int Id { get; set; }
 
         [Required, MaxLength(50)]
+        [Unique]
         public string Name { get; set; }
 
-        [Required]
-        public string Icon { get; set; }
-
-        public List<string> CategoryFeatures { get; set; } 
+      
+        public string? Icon { get; set; }
+       
+        public List<CategoryFeatures>? CategoryFeatures { get; set; } 
 
         // Navigation Properties
+
         public ICollection<Business>? Businesses { get; set; }
 
         //public Category()

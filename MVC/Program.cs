@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using mvc.Models;
 using mvc.Models.Authorize;
+using mvc.RepoInterfaces;
+using mvc.Repositories;
 using MVC.Models;
 
 namespace mvc
@@ -37,6 +40,9 @@ namespace mvc
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            builder.Services.AddScoped<ICategoryReposiotry, CategoryRepository>();
+           // builder.Services.AddScoped<IcategoryFeaturesRepository, CategoryFeatures>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
