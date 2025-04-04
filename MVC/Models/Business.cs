@@ -57,7 +57,7 @@ namespace mvc.Models
         public int PackageId { get; set; }
         public Package Package { get; set; } 
 
-
+       
         public  ICollection<Review>? Reviews { get; set; }
         public  ICollection<OpeningHour>? OpeningHours { get; set; }
         public  ICollection<Ad>? Advertisements { get; set; }

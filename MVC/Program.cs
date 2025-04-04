@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using mvc.Models;
 using mvc.Models.Authorize;
 using mvc.RepoInterfaces;
 using mvc.Repositories;
@@ -39,12 +40,16 @@ namespace mvc
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+
             //register custom services 
             builder.Services.AddScoped<IPackageRepository, PackageRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IReviewRepository,ReviewRepository>();
             builder.Services.AddScoped<IBussinessRepository, BussinessRepository>();
 
+
+            builder.Services.AddScoped<ICategoryReposiotry, CategoryRepository>();
+           // builder.Services.AddScoped<IcategoryFeaturesRepository, CategoryFeatures>();
 
             var app = builder.Build();
 

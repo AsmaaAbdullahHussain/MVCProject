@@ -14,6 +14,7 @@ namespace MVC.Models
         
         public DbSet<Business> Businesses { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<CategoryFeatures>CategoryFeatures { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<OpeningHour> OpeningHours { get; set; }
         public DbSet<Ad> Ads { get; set; }

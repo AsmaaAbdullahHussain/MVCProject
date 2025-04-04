@@ -25,7 +25,9 @@ namespace mvc.Repositories
             return await dbSet.FindAsync(id);
         }
 
+
         public IQueryable<T> GetAll(int size = 0 ,int pageNumber = 1)
+
         {
             if (pageNumber > 0 && size > 0)
             {
