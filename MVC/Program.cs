@@ -46,6 +46,7 @@ namespace mvc
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IReviewRepository,ReviewRepository>();
             builder.Services.AddScoped<IBussinessRepository, BussinessRepository>();
+            builder.Services.AddScoped<IBusinessFeaturesRepoisitory, BusinessFeaturesRepoisitory>();
 
 
             builder.Services.AddScoped<ICategoryReposiotry, CategoryRepository>();

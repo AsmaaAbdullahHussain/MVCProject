@@ -38,7 +38,7 @@ namespace mvc.Models
         public string Longitude { get; set; }
 
         [Required]
-        public string Address { get; set; }  
+        public string Address { get; set; }
 
         //public List<string> Features { get; set; } //table  (id,describtion,bid)
 
@@ -47,14 +47,14 @@ namespace mvc.Models
         //[Required]
         //public BusinessType BusinessType { get; set; } //enum //user can`t change it
 
-        public bool IsActive { get; set; } //user can`t change it 
+        public bool IsActive { get; set; } = false; //user can`t change it 
 
         public DateTime? SubscriptionEndDate { get; set; }  //user can`t change it
 
         // public List<MenuItem> MenuItems { get; set; }
 
         [ForeignKey("Package")]
-        public int PackageId { get; set; }
+        public int PackageId { get; set; } = 1;
         public Package Package { get; set; } 
 
        
@@ -62,7 +62,9 @@ namespace mvc.Models
         public  ICollection<OpeningHour>? OpeningHours { get; set; }
         public  ICollection<Ad>? Advertisements { get; set; }
 
-        
+        public ICollection<BusinessFeatures>? BusinessFeatures { get; set; }
+        public ICollection<Checkout>? Checkout { get; set; }
+
     }
 
   

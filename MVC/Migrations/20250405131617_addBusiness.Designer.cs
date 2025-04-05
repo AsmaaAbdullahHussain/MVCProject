@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace mvc.Migrations
 {
     [DbContext(typeof(ProjectContext))]
-    [Migration("20250330173032_RemoveColumnName")]
-    partial class RemoveColumnName
+    [Migration("20250405131617_addBusiness")]
+    partial class addBusiness
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -280,21 +280,10 @@ namespace mvc.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("BusinessType")
-                        .HasColumnType("int");
-
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Features")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Gallery")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -322,6 +311,9 @@ namespace mvc.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("SubscriptionEndDate")
                         .HasColumnType("datetime2");
 
@@ -331,7 +323,31 @@ namespace mvc.Migrations
 
                     b.HasIndex("OwnerId");
 
+                    b.HasIndex("PackageId");
+
                     b.ToTable("Businesses");
+                });
+
+            modelBuilder.Entity("mvc.Models.BusinessFeatures", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.ToTable("BusinessFeatures");
                 });
 
             modelBuilder.Entity("mvc.Models.Category", b =>
@@ -343,7 +359,6 @@ namespace mvc.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Icon")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -376,6 +391,53 @@ namespace mvc.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("CategoryFeatures");
+                });
+
+            modelBuilder.Entity("mvc.Models.Checkout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubscriptionType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("PackageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Checkouts");
                 });
 
             modelBuilder.Entity("mvc.Models.OpeningHour", b =>
@@ -412,6 +474,29 @@ namespace mvc.Migrations
                     b.ToTable("OpeningHours");
                 });
 
+            modelBuilder.Entity("mvc.Models.Package", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("MonthlyPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("YearlyPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Packages");
+                });
+
             modelBuilder.Entity("mvc.Models.Review", b =>
                 {
                     b.Property<int>("Id")
@@ -430,12 +515,12 @@ namespace mvc.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -518,9 +603,28 @@ namespace mvc.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("mvc.Models.Package", "Package")
+                        .WithMany("Businesses")
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Category");
 
                     b.Navigation("Owner");
+
+                    b.Navigation("Package");
+                });
+
+            modelBuilder.Entity("mvc.Models.BusinessFeatures", b =>
+                {
+                    b.HasOne("mvc.Models.Business", "Business")
+                        .WithMany("BusinessFeatures")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Business");
                 });
 
             modelBuilder.Entity("mvc.Models.CategoryFeatures", b =>
@@ -532,6 +636,33 @@ namespace mvc.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("mvc.Models.Checkout", b =>
+                {
+                    b.HasOne("mvc.Models.Business", "Business")
+                        .WithMany("Checkout")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("mvc.Models.Package", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("mvc.Models.Authorize.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Business");
+
+                    b.Navigation("Package");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("mvc.Models.OpeningHour", b =>
@@ -560,6 +691,10 @@ namespace mvc.Migrations
                 {
                     b.Navigation("Advertisements");
 
+                    b.Navigation("BusinessFeatures");
+
+                    b.Navigation("Checkout");
+
                     b.Navigation("OpeningHours");
 
                     b.Navigation("Reviews");
@@ -570,6 +705,11 @@ namespace mvc.Migrations
                     b.Navigation("Businesses");
 
                     b.Navigation("CategoryFeatures");
+                });
+
+            modelBuilder.Entity("mvc.Models.Package", b =>
+                {
+                    b.Navigation("Businesses");
                 });
 #pragma warning restore 612, 618
         }

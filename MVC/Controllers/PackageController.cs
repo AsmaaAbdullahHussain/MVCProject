@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using mvc.Migrations;
+//using mvc.Migrations;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using System.Threading.Tasks;

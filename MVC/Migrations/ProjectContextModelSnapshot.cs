@@ -4,7 +4,6 @@ using MVC.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -12,11 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace mvc.Migrations
 {
     [DbContext(typeof(ProjectContext))]
-    [Migration("20250404173151_editBussiness2")]
-    partial class editBussiness2
+    partial class ProjectContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -328,6 +325,28 @@ namespace mvc.Migrations
                     b.ToTable("Businesses");
                 });
 
+            modelBuilder.Entity("mvc.Models.BusinessFeatures", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.ToTable("BusinessFeatures");
+                });
+
             modelBuilder.Entity("mvc.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -336,12 +355,7 @@ namespace mvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CategoryFeatures")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Icon")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -352,6 +366,28 @@ namespace mvc.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("mvc.Models.CategoryFeatures", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("CategoryFeatures");
                 });
 
             modelBuilder.Entity("mvc.Models.Checkout", b =>
@@ -577,10 +613,32 @@ namespace mvc.Migrations
                     b.Navigation("Package");
                 });
 
+            modelBuilder.Entity("mvc.Models.BusinessFeatures", b =>
+                {
+                    b.HasOne("mvc.Models.Business", "Business")
+                        .WithMany("BusinessFeatures")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Business");
+                });
+
+            modelBuilder.Entity("mvc.Models.CategoryFeatures", b =>
+                {
+                    b.HasOne("mvc.Models.Category", "Category")
+                        .WithMany("CategoryFeatures")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("mvc.Models.Checkout", b =>
                 {
                     b.HasOne("mvc.Models.Business", "Business")
-                        .WithMany()
+                        .WithMany("Checkout")
                         .HasForeignKey("BusinessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -630,6 +688,10 @@ namespace mvc.Migrations
                 {
                     b.Navigation("Advertisements");
 
+                    b.Navigation("BusinessFeatures");
+
+                    b.Navigation("Checkout");
+
                     b.Navigation("OpeningHours");
 
                     b.Navigation("Reviews");
@@ -638,6 +700,8 @@ namespace mvc.Migrations
             modelBuilder.Entity("mvc.Models.Category", b =>
                 {
                     b.Navigation("Businesses");
+
+                    b.Navigation("CategoryFeatures");
                 });
 
             modelBuilder.Entity("mvc.Models.Package", b =>
