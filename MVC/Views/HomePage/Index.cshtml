@@ -60,6 +60,24 @@
                     <div class="vr-auth__header">
 <h1>Index</h1>
 <p>User ID: @ViewBag.UserId</p>
+                        <!-- Notification Icon -->
+                        <a href="/Review/GetUnreadReviews" id="notificationContainer" style="position: relative; display: inline-block; cursor: pointer; text-decoration: none; color: inherit;">
+                            <i class="fa fa-bell" style="font-size: 24px;"></i>
+                            <span id="notificationCount" style="
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: red;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 12px;
+        display: none;
+    ">0</span>
+                        </a>
+
+
+
 
                         <!-- Toast Container -->
                         <div class="vr-toast-container" id="toastContainer"></div>
@@ -86,6 +104,23 @@
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
 <script>
+  
+    let notificationCount = 0;
+
+    // استدعاء عدد الريفيوهات الجديدة لما الصفحة تفتح
+    window.onload = function () {
+        fetch('/Review/GetUnreadReviewsCount')
+            .then(response => response.json())
+            .then(count => {
+                const countSpan = document.getElementById("notificationCount");
+                if (count > 0) {
+                    countSpan.innerText = count;
+                    countSpan.style.display = 'inline-block';
+                    notificationCount = count;
+                }
+            });
+    };
+
     //1) declare hub that i want to open connect
     var hub=new signalR.HubConnectionBuilder().withUrl("/reviewhub").build();
     //2) start Connection
@@ -98,13 +133,29 @@
 
     );
     //3) server notification i want to handel
-    hub.on("NewReviewArrived",
-    function(notificcation)
-    {
-        console.log(notificcation);
-    }
 
-    )
+    hub.on("NewReviewArrived", function(notification) {
+        console.log(notification);
+
+        // زود العداد
+        notificationCount++;
+
+        // حدث القيمة في الـ span
+        const countSpan = document.getElementById("notificationCount");
+        countSpan.innerText = notificationCount;
+
+        // خليه يظهر لو كان مخفي
+        countSpan.style.display = 'inline-block';
+    });
+      document.getElementById("notificationContainer").addEventListener("click", function () {
+        notificationCount = 0;
+        const countSpan = document.getElementById("notificationCount");
+        countSpan.innerText = notificationCount;
+        countSpan.style.display = 'none';
+
+        // هنا ممكن تبعتي request تخلي الريفيوهات كلها IsRead = true
+    });
+
 
 
 

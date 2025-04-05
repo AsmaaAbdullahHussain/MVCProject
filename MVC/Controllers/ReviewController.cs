@@ -60,6 +60,31 @@ namespace mvc.Controllers
             return View("Add", reviewVM);
 
         }
+        [HttpGet]
+     
+        public async Task<IActionResult> GetUnreadReviewsCount()
+        {
+            int count = await _reviewRepository.GetAll(r => !r.IsRead).CountAsync();
+            return Json(count);
+        }
+     
+        public async Task<IActionResult> GetUnreadReviews()
+        {
+            var unreadReviews = await _reviewRepository.GetAll(r => !r.IsRead).ToListAsync();
+
+            foreach (var review in unreadReviews)
+            {
+                review.IsRead = true;
+            }
+
+            await _reviewRepository.SaveAsync();
+
+            return View(unreadReviews);
+        }
+
+
+
+
         public async Task<IActionResult> Edit(int id)/////////////////
         {
             Review review = await _reviewRepository.GetByIdAsync(id);

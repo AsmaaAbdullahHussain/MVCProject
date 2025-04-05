@@ -23,6 +23,7 @@ namespace mvc.Models
 
         public DateTime CreatedAt { get; set; }
         public Business Business { get; set; }
+        public bool IsRead { get; set; }
 
         public Review()
         {
