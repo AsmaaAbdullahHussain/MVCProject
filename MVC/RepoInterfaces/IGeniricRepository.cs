@@ -7,7 +7,7 @@ namespace mvc.RepoInterfaces
         Task AddAsync(T entity);
         Task<T> GetByIdAsync(Id id);
         IQueryable<T> GetAll( int size=0, int pageNumber = 1);
-        IQueryable<T> GetAll(Expression<Func<T, bool>> predicate, int size=1, int pageNumber = 1);
+        IQueryable<T> GetAll(Expression<Func<T, bool>> predicate, int size=0, int pageNumber = 0);
         Task<int> CountAsync();
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate);
         void Update(T updated);

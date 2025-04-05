@@ -35,7 +35,7 @@ namespace mvc.Repositories
             }
             return dbSet;
         }
-        public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate,int size=0, int pageNumber = 1)
+        public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate,int size=0, int pageNumber = 0)
         {
             IQueryable<T> query = dbSet.Where(predicate);
             if(pageNumber>0 && size>0)
