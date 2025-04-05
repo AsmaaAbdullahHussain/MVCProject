@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using mvc.Hubs;
 using mvc.Models;
 using mvc.Models.Authorize;
 using mvc.RepoInterfaces;
 using mvc.Repositories;
+using MVC.Hubs;
 using MVC.Models;
 
 namespace mvc
@@ -40,6 +42,7 @@ namespace mvc
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            builder.Services.AddSignalR();
 
             //register custom services 
             builder.Services.AddScoped<IPackageRepository, PackageRepository>();
@@ -64,6 +67,8 @@ namespace mvc
             app.UseRouting();
 
             app.UseAuthorization();
+            app.MapHub<Chathub>("/chathub");
+            app.MapHub<ReviewHub>("/reviewhub");
             app.MapControllerRoute(
                 "pay", "Payment/Success/{id}/{businessId}/{packageid}/{subscription}",
                 new { controller = "Payment", action = "Success" }

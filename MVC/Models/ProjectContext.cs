@@ -20,6 +20,8 @@ namespace MVC.Models
         public DbSet<Ad> Ads { get; set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<Checkout> Checkouts { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
     }
 }

@@ -1,0 +1,370 @@
+﻿@using System.Security.Claims
+<div id="adminChat" style="padding: 20px; max-width: 1000px; margin: 0 auto;">
+    <h3 class="text-center mb-4">لوحة تحكم الدردشة</h3>
+
+    <div class="row">
+        <!-- قائمة المحادثات -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>المحادثات النشطة</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="conversationsList" style="max-height: 500px; overflow-y: auto;">
+                        <!-- سيتم ملؤها بالجافاسكريبت -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة المحادثة -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 id="chatTitle">اختر محادثة</h5>
+                </div>
+                <div class="card-body" style="height: 400px; overflow-y: auto;" id="messagesContainer">
+                    <div id="noConversation" class="text-center text-muted" style="padding-top: 150px;">
+                        <i class="fas fa-comments fa-3x mb-3"></i>
+                        <p>اختر محادثة لعرض الرسائل</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input type="text" id="messageInput" class="form-control" placeholder="اكتب ردك..." disabled>
+                        <input type="hidden" id="currentConversationId">
+                        <button id="sendButton" class="btn btn-primary" disabled>إرسال</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="connectionStatus" class="mt-2 text-center"></div>
+</div>
+
+@section Styles {
+    <style>
+        .conversation-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .conversation-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .conversation-item.active {
+                background-color: #e9f7fe;
+            }
+
+        .message {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            max-width: 70%;
+        }
+
+        .received-message {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+        }
+
+        .sent-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            display: block;
+            text-align: right;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        // العناصر الرئيسية
+        const statusDisplay = document.getElementById("connectionStatus");
+        const sendButton = document.getElementById("sendButton");
+        const messageInput = document.getElementById("messageInput");
+        const conversationsList = document.getElementById("conversationsList");
+        const messagesContainer = document.getElementById("messagesContainer");
+        const noConversationDiv = document.getElementById("noConversation");
+        const chatTitle = document.getElementById("chatTitle");
+        const currentConversationId = document.getElementById("currentConversationId");
+
+        // إنشاء الاتصال
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        // متغيرات حالة التطبيق
+        const activeConversations = new Map();
+        let currentActiveConversation = null;
+
+        // ============= الدوال المساعدة =============
+
+        // تحديث حالة الاتصال
+        function updateStatus(message, type = "") {
+            if (statusDisplay) {
+                statusDisplay.innerHTML = message;
+                statusDisplay.className = type ? `text-${type}` : "";
+            }
+        }
+
+        // تمكين/تعطيل الدردشة
+        function setChatState(enabled) {
+            if (sendButton) sendButton.disabled = !enabled;
+            if (messageInput) messageInput.disabled = !enabled;
+        }
+
+        // تنسيق التاريخ
+        function formatDate(date) {
+            const d = new Date(date);
+            return d.toLocaleString('en-US', {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // ============= إدارة المحادثات =============
+
+        // عرض قائمة المحادثات
+        function renderConversationsList(conversations) {
+            if (!conversationsList) return;
+
+            conversationsList.innerHTML = '';
+            activeConversations.clear();
+
+            if (!conversations || conversations.length === 0) {
+                conversationsList.innerHTML = '<div class="p-3 text-muted text-center">لا توجد محادثات</div>';
+                return;
+            }
+
+            // تصفية المحادثات المكررة
+            const uniqueConversations = conversations.filter(conv => {
+                if (!activeConversations.has(conv.userId)) {
+                    activeConversations.set(conv.userId, conv);
+                    return true;
+                }
+                return false;
+            });
+
+            uniqueConversations.forEach(conv => {
+                const convItem = document.createElement('div');
+                convItem.className = 'conversation-item';
+                convItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>${conv.userName || 'مستخدم غير معروف'}</strong>
+                        ${conv.unreadCount > 0 ? `<span class="badge bg-danger">${conv.unreadCount}</span>` : ''}
+                    </div>
+                    <small class="text-muted d-block">${formatDate(conv.lastMessageAt || conv.createdAt)}</small>
+                    <small class="text-truncate d-block">${conv.lastMessage || 'لا توجد رسائل'}</small>
+                `;
+                convItem.dataset.conversationId = conv.id;
+                convItem.dataset.userId = conv.userId;
+
+                convItem.addEventListener('click', () => {
+                    if (currentActiveConversation === conv.userId) return;
+
+                    document.querySelectorAll('.conversation-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    convItem.classList.add('active');
+                    currentActiveConversation = conv.userId;
+                    loadConversationMessages(conv.id, conv.userName);
+                });
+
+                conversationsList.appendChild(convItem);
+            });
+        }
+
+        // جلب رسائل المحادثة
+        async function loadConversationMessages(conversationId, userName) {
+            if (!currentConversationId || !messagesContainer || !noConversationDiv || !chatTitle) return;
+
+            currentConversationId.value = conversationId;
+            chatTitle.textContent = `محادثة مع ${userName || 'مستخدم غير معروف'}`;
+            noConversationDiv.style.display = 'none';
+            setChatState(true);
+
+            try {
+                const messages = await connection.invoke("GetConversationMessages", conversationId);
+                renderMessages(messages);
+
+            } catch (err) {
+                console.error("Error loading messages:", err);
+                updateStatus("فشل تحميل الرسائل", "danger");
+            }
+        }
+
+        // عرض الرسائل
+        function renderMessages(messages) {
+            if (!messagesContainer) return;
+
+            messagesContainer.innerHTML = '';
+
+            if (!messages || messages.length === 0) {
+                messagesContainer.innerHTML = '<div class="text-center text-muted">لا توجد رسائل</div>';
+                return;
+            }
+
+            messages.forEach(msg => {
+                const isReceived = msg.senderId !== '@User.FindFirstValue(ClaimTypes.NameIdentifier)';
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isReceived ? 'received-message' : 'sent-message'}`;
+                messageDiv.innerHTML = `
+                    <div class="message-content">${msg.content}</div>
+                    <div class="message-footer">
+                        <small class="message-time">${formatDate(msg.sentAt)}</small>
+                        ${!isReceived && msg.isRead ? '<small class="text-muted ms-2">✓✓</small>' : ''}
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+            });
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // ============= إدارة الأحداث =============
+
+              connection.on("ReceiveAdminMessage", function (data) {
+            console.log("New admin message received:", data);
+            loadAdminConversations();
+        });
+        // استقبال رسالة جديدة
+        connection.on("ReceiveInstantMessage", (message) => {
+            // تحديث قائمة المحادثات
+            loadAdminConversations();
+
+            // إذا كانت الرسالة للمحادثة النشطة
+            if (currentConversationId?.value === message.conversationId) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message received-message';
+                messageDiv.innerHTML = `
+                    <div class="message-content">${message.content}</div>
+                    <div class="message-footer">
+                        <small class="message-time">${formatDate(message.timestamp)}</small>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                // تحديث حالة القراءة
+                connection.invoke("MarkMessagesAsRead", message.conversationId);
+            }
+        });
+
+        // إرسال رسالة
+        async function sendMessage() {
+            const message = messageInput?.value.trim();
+            const conversationId = currentConversationId?.value;
+
+            if (message && conversationId) {
+                try {
+                    await connection.invoke("SendReply", conversationId, message);
+
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message sent-message';
+                    messageDiv.innerHTML = `
+                        <div class="message-content">${message}</div>
+                        <div class="message-footer">
+                            <small class="message-time">${formatDate(new Date())}</small>
+                            <small class="text-muted ms-2">✓</small>
+                        </div>
+                    `;
+                    messagesContainer.appendChild(messageDiv);
+
+                    messageInput.value = '';
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                } catch (err) {
+                    updateStatus("فشل إرسال الرسالة", "danger");
+                    console.error(err);
+                }
+            }
+        }
+
+        // ============= التنفيذ =============
+
+        // بدء الاتصال
+        async function startConnection() {
+            updateStatus("جاري الاتصال...", "info");
+            setChatState(false);
+
+            try {
+                await connection.start();
+                updateStatus("متصل", "success");
+                setTimeout(() => updateStatus(""), 2000);
+                await loadAdminConversations();
+            } catch (err) {
+                updateStatus("فشل الاتصال، إعادة المحاولة...", "danger");
+                setTimeout(startConnection, 5000);
+            }
+        }
+
+        // جلب محادثات الأدمن
+        async function loadAdminConversations() {
+            try {
+                const conversations = await connection.invoke("GetAdminConversations");
+                renderConversationsList(conversations);
+            } catch (err) {
+                console.error("Error loading conversations:", err);
+            }
+        }
+
+        // أحداث دورة حياة الاتصال
+        connection.onreconnecting(() => {
+            updateStatus("جاري إعادة الاتصال...", "warning");
+            setChatState(false);
+        });
+
+        connection.onreconnected(async () => {
+            updateStatus("متصل", "success");
+            setTimeout(() => updateStatus(""), 2000);
+            await loadAdminConversations();
+            if (currentConversationId?.value) {
+                await loadConversationMessages(currentConversationId.value, chatTitle.textContent.replace('محادثة مع ', ''));
+            }
+        });
+                connection.on("UpdateAdminConversation", function (update) {
+            console.log("Received conversation update:", update);
+
+            // تحديث واجهة الأدمن هنا
+            loadAdminConversations(); // إعادة تحميل المحادثات
+
+            // أو يمكنك عمل تحديث ديناميكي دون إعادة تحميل كامل
+        //    updateConversationUI(update);
+        });
+
+        connection.onclose(() => {
+            updateStatus("غير متصل", "danger");
+            setChatState(false);
+            setTimeout(startConnection, 5000);
+        });
+
+        // بدء الاتصال عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            startConnection();
+
+            messageInput?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            sendButton?.addEventListener('click', sendMessage);
+        });
+    </script>
+}

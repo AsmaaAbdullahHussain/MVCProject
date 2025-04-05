@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using mvc.ViewModels.ReviewVM;
+using MVC.Hubs;
 using System.Threading.Tasks;
 
 namespace mvc.Controllers
@@ -11,10 +13,13 @@ namespace mvc.Controllers
     {
         IReviewRepository _reviewRepository;
         IBussinessRepository _bussinessRepository;
-        public ReviewController(IReviewRepository reviewRepository,IBussinessRepository bussinessRepository)
+        private readonly IHubContext<ReviewHub> hubcontext;
+
+        public ReviewController(IReviewRepository reviewRepository, IBussinessRepository bussinessRepository, IHubContext<ReviewHub> hubcontext)
         {
             _reviewRepository = reviewRepository;
             _bussinessRepository = bussinessRepository;
+            this.hubcontext = hubcontext;
         }
         public async Task<IActionResult> GetAllByBussniss(int bussnissId)
         {
@@ -47,6 +52,8 @@ namespace mvc.Controllers
                 };
                 await _reviewRepository.AddAsync(review);
                 await _reviewRepository.SaveAsync();
+                await hubcontext.Clients.All.SendAsync("NewReviewArrived", reviewVM);
+
                 return RedirectToAction("GetAllByBussniss", new { bussnissId = review.BusinessId });
             }
 

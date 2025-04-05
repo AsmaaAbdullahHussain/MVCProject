@@ -77,7 +77,35 @@
 
 
 
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
+<script>
+    //1) declare hub that i want to open connect
+    var hub=new signalR.HubConnectionBuilder().withUrl("/reviewhub").build();
+    //2) start Connection
+    hub.start().then(
+        function()
+        {
+            console.log("hub connected success");
+        }
+
+
+    );
+    //3) server notification i want to handel
+    hub.on("NewReviewArrived",
+    function(notificcation)
+    {
+        console.log(notificcation);
+    }
+
+    )
+
+
+
+</script>
