@@ -1,6 +1,7 @@
 ﻿using mvc.Models;
 using mvc.RepoInterfaces;
 using MVC.Models;
+using Polly;
 
 namespace mvc.Repositories
 {
@@ -9,6 +10,11 @@ namespace mvc.Repositories
         public PackageRepository(ProjectContext context) : base(context)
         {
         }
+        public bool IsExist(string name)
+        {
+            return dbSet.Any(p=>p.Name==name);
+        }
+
     }
     
     

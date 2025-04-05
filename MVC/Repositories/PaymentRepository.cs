@@ -43,8 +43,8 @@ namespace mvc.Repositories
             },
                 ApplicationContext = new ApplicationContext()
                 {
-                    ReturnUrl = $"{baseUrl}/payment/success/{checkout.Id}?businessId={checkout.BusinessId}&packageid={checkout.PackageId}&subscription={checkout.SubscriptionType}",
-                    CancelUrl = $"{baseUrl}/payment/cancel"
+                    ReturnUrl = $"{baseUrl}/payment/success/{checkout.Id}/{checkout.BusinessId}/{checkout.PackageId}/{checkout.SubscriptionType}",
+                    CancelUrl = $"{baseUrl}/payment/cancel/{checkout.Id}"
                 }
             };
 

@@ -9,6 +9,10 @@ namespace mvc.Repositories
         public ReviewRepository(ProjectContext context) : base(context)
         {
         }
+        public bool IsExist(string email)
+        {
+            return dbSet.Any(r=>r.Email==email);
+        }
 
     }
 }

@@ -64,8 +64,8 @@ namespace mvc
 
             app.UseAuthorization();
             app.MapControllerRoute(
-                "pay", "pay/{amount}",
-                new { controller = "Payment", action = "CreateOrder" }
+                "pay", "Payment/Success/{id}/{businessId}/{packageid}/{subscription}",
+                new { controller = "Payment", action = "Success" }
                 );
             app.MapControllerRoute(
                 name: "default",

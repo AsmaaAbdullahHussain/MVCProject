@@ -10,13 +10,15 @@ namespace mvc.Controllers
     public class ReviewController : Controller
     {
         IReviewRepository _reviewRepository;
-        public ReviewController(IReviewRepository reviewRepository)
+        IBussinessRepository _bussinessRepository;
+        public ReviewController(IReviewRepository reviewRepository,IBussinessRepository bussinessRepository)
         {
             _reviewRepository = reviewRepository;
+            _bussinessRepository = bussinessRepository;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> GetAllByBussniss(int bussnissId)
         {
-            List<Review> reviews = await _reviewRepository.GetAll().ToListAsync();
+            List<Review> reviews = await _reviewRepository.GetAll(r=>r.BusinessId==bussnissId).ToListAsync();
             return View(reviews);
         }
         public IActionResult Add()
@@ -25,6 +27,15 @@ namespace mvc.Controllers
         }
         public async Task<IActionResult> SaveAdd(AddReviewVM reviewVM)
         {
+            Business business = await _bussinessRepository.GetByIdAsync(reviewVM.BusinessId);
+            if (business == null)
+            {
+                ModelState.AddModelError("BusinessId", "Business not found");
+            }
+            if(_reviewRepository.IsExist(reviewVM.Email))
+            {
+                ModelState.AddModelError("Email", "Email already add an review you ");
+            }
             if (ModelState.IsValid)
             {
                 Review review = new Review
@@ -34,51 +45,52 @@ namespace mvc.Controllers
                     Rating = reviewVM.Rating,
                     Comment = reviewVM.Comment
                 };
-                await _reviewRepository.AddAsync(review);/////////////////////
+                await _reviewRepository.AddAsync(review);
                 await _reviewRepository.SaveAsync();
-                RedirectToAction("Index");
+                return RedirectToAction("GetAllByBussniss", new { bussnissId = review.BusinessId });
             }
 
             return View("Add", reviewVM);
 
         }
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id)/////////////////
         {
             Review review = await _reviewRepository.GetByIdAsync(id);
-            EditReviewVM reviewVM = new EditReviewVM
-            {
-                Email = review.Email,
-                Rating = review.Rating,
-                Comment = review.Comment
-            };
             if (review == null)
             {
                 return NotFound();
             }
+            EditReviewVM reviewVM = new EditReviewVM
+            {
+                Id = review.Id,
+                Email = review.Email,
+                Rating = review.Rating,
+                Comment = review.Comment
+            };
+            
             return View(reviewVM);
         }
-        public IActionResult SaveEdit(int id,EditReviewVM reviewVM)
+        public async Task<IActionResult> SaveEditAsync(int id,EditReviewVM reviewVM)
         {
+           
             if (ModelState.IsValid)
             {
-                Review review = new Review
-                {
-                    Id = id,
-                    Email = reviewVM.Email,
-                    Rating = reviewVM.Rating,
-                    Comment = reviewVM.Comment
-                };
-                _reviewRepository.Update(review);
+                Review review = await _reviewRepository.GetByIdAsync(id);
+                review.Email = reviewVM.Email;
+                review.Rating = reviewVM.Rating;
+                review.Comment = reviewVM.Comment;
                 _reviewRepository.SaveAsync();
-                return RedirectToAction("Index");
+
+                return RedirectToAction("GetAllByBussniss", new { bussnissId = review.BusinessId });
             }
             return View("Edit", reviewVM);
         }
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Delete(int id)/////
         {
+            Review review = await _reviewRepository.GetByIdAsync(id);
             await _reviewRepository.DeleteAsync(id);
             await _reviewRepository.SaveAsync();
-            return RedirectToAction("Index");
+            return RedirectToAction("GetAllByBussniss", new { bussnissId = review.BusinessId });
         }
 
     }

@@ -32,6 +32,15 @@ namespace mvc.Controllers
         }
         public async Task<IActionResult> SaveAdd(AddPackageVM newPackage)
         {
+            if (_packageRepository.IsExist(newPackage.Name))
+            {
+                ModelState.AddModelError("Name", "This name already exists");
+            }
+            if (!ModelState.IsValid)
+            {
+                return View("Add", newPackage);
+            }
+
             Package package = new Package
             {
                 Name = newPackage.Name,
@@ -48,14 +57,29 @@ namespace mvc.Controllers
             await _packageRepository.SaveAsync();
             return RedirectToAction("GetAll");
         }
-        public async Task<IActionResult> Update(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             Package package = await _packageRepository.GetByIdAsync(id);
-           
-            return View(package);
+            UpdatePackageVM updatePackageVM = new UpdatePackageVM
+            {
+                Id = package.Id,
+                Name = package.Name,
+                MonthlyPrice = package.MonthlyPrice,
+                YearlyPrice = package.YearlyPrice,
+            };
+
+            return View(updatePackageVM);
         }
         public async Task<IActionResult> SaveUpdate(int id,UpdatePackageVM updatedPackage)
         {
+            if (_packageRepository.IsExist(updatedPackage.Name))
+            {
+                ModelState.AddModelError("Name", "This name already exists");
+            }
+            if (!ModelState.IsValid)
+            {
+                return View("Edit", updatedPackage);
+            }
             Package package = new Package
             {
                 Id = id,
