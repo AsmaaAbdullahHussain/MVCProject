@@ -1,0 +1,305 @@
+﻿@{
+    ViewData["Title"] = "الدردشة مع الدعم الفني";
+}
+
+<div id="userChat" class="user-chat-container">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5>الدردشة مع الدعم الفني</h5>
+            <div id="connectionStatus" class="small"></div>
+        </div>
+
+        <div class="card-body messages-container" id="messagesContainer">
+            <!-- الرسائل ستظهر هنا -->
+        </div>
+
+        <div class="card-footer">
+            <div class="input-group">
+                <input type="text" id="messageInput" class="form-control" placeholder="اكتب رسالتك هنا..." disabled>
+                <button id="sendButton" class="btn btn-primary" disabled>
+                    <i class="fas fa-paper-plane"></i> إرسال
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .user-chat-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .messages-container {
+            height: 60vh;
+            overflow-y: auto;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            position: relative;
+        }
+
+        .received-message {
+            background-color: #e9ecef;
+            align-self: flex-start;
+        }
+
+        .sent-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            display: block;
+            text-align: left;
+            margin-top: 5px;
+        }
+
+        .connection-status {
+            font-size: 0.8rem;
+        }
+
+        .text-success {
+            color: #28a745;
+        }
+
+        .text-warning {
+            color: #ffc107;
+        }
+
+        .text-danger {
+            color: #dc3545;
+        }
+    </style>
+}
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        // المتغيرات العامة
+        let connection = null;
+        let isConnectionStarting = false;
+
+        // العناصر الرئيسية
+        const statusDisplay = document.getElementById("connectionStatus");
+        const sendButton = document.getElementById("sendButton");
+        const messageInput = document.getElementById("messageInput");
+        const messagesContainer = document.getElementById("messagesContainer");
+
+        // إنشاء اتصال جديد
+        function createConnection() {
+            return new signalR.HubConnectionBuilder()
+                .withUrl("/chathub")
+                .withAutomaticReconnect({
+                    nextRetryDelayInMilliseconds: retryContext => {
+                        if (retryContext.elapsedMilliseconds < 60000) {
+                            return Math.random() * 3000 + 2000; // 2-5 ثواني عشوائية
+                        }
+                        return null;
+                    }
+                })
+                .configureLogging(signalR.LogLevel.Warning)
+                .build();
+        }
+
+        // تحديث حالة الاتصال
+        function updateStatus(message, type = "") {
+            if (statusDisplay) {
+                statusDisplay.textContent = message;
+                statusDisplay.className = `connection-status ${type}`;
+            }
+        }
+
+        // تعطيل/تمكين الدردشة
+        function disableChat() {
+            if (sendButton) sendButton.disabled = true;
+            if (messageInput) messageInput.disabled = true;
+        }
+
+        function enableChat() {
+            if (sendButton) sendButton.disabled = false;
+            if (messageInput) messageInput.disabled = false;
+        }
+
+        // إضافة رسالة للواجهة مع التحقق من المحتوى
+           function addMessage(content, isReceived, timestamp, senderName = null) {
+            if (!messagesContainer) return;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isReceived ? 'received' : 'sent'}`;
+
+            // إنشاء عناصر الرسالة
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;  // التأكد من عرض محتوى الرسالة
+
+            const messageTime = document.createElement('small');
+            messageTime.className = 'message-time';
+            messageTime.textContent = new Date(timestamp).toLocaleString('ar-EG');
+
+            // إضافة العناصر للرسالة
+            messageDiv.appendChild(messageContent);
+            messageDiv.appendChild(messageTime);
+
+            // إضافة اسم المرسل إذا كان موجوداً
+            if (senderName && isReceived) {
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'message-sender';
+                senderDiv.textContent = senderName;
+                messageDiv.prepend(senderDiv);
+            }
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+       
+
+        // معالجة استقبال الردود مع التحقق من البيانات
+        function setupConnectionHandlers() {
+            if (!connection) return;
+            
+          connection.on("ReceiveReply", (message) => {
+            console.log("بيانات الرسالة الكاملة:", JSON.stringify(message, null, 2)); // تسجيل كامل للبيانات
+
+            if (!message) {
+                console.error("تم استقبال رسالة فارغة");
+                return;
+            }
+
+            // استخراج المحتوى بجميع الاحتمالات
+            const messageContent = message.message 
+                               || "رسالة جديدة من الدعم الفني";
+
+            const timestamp = message.Timestamp || message.time || message.sentAt || new Date();
+            const adminName = message.adminName+"(Admin)" ;
+
+            console.log("المحتوى المستخرج:", messageContent,adminName); // تسجيل المحتوى المستخرج
+
+            addMessage(messageContent, true, timestamp, adminName);
+        });
+
+             
+
+            // أحداث تغيير حالة الاتصال
+            connection.onreconnecting(() => {
+                updateStatus("جاري إعادة الاتصال...", "text-warning");
+                disableChat();
+            });
+
+            connection.onreconnected((connectionId) => {
+                updateStatus("تم إعادة الاتصال", "text-success");
+                setTimeout(() => updateStatus(""), 2000);
+                enableChat();
+            });
+
+            connection.onclose((error) => {
+                updateStatus("تم قطع الاتصال", "text-danger");
+                disableChat();
+                setTimeout(initializeConnection, 5000);
+            });
+        }
+
+        // إرسال رسالة مع معالجة الأخطاء
+        async function sendMessage() {
+            const message = messageInput?.value?.trim();
+            if (!message) return;
+
+            try {
+                if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+                    await initializeConnection();
+                }
+
+                await connection.invoke("SendToAdmins", message);
+                addMessage(message, false, new Date(), "أنت");
+                messageInput.value = "";
+            } catch (err) {
+                console.error("فشل إرسال الرسالة:", err);
+                updateStatus("فشل إرسال الرسالة، جاري إعادة المحاولة...", "text-danger");
+                setTimeout(() => updateStatus(""), 3000);
+            }
+        }
+
+        // بدء الاتصال مع إدارة الحالة
+        async function initializeConnection() {
+            if (isConnectionStarting) return;
+            isConnectionStarting = true;
+            updateStatus("جاري الاتصال بالخادم...", "text-info");
+
+            try {
+                // إيقاف الاتصال الحالي إن وجد
+                if (connection && connection.state !== signalR.HubConnectionState.Disconnected) {
+                    await connection.stop();
+                }
+
+                // إنشاء اتصال جديد
+                connection = createConnection();
+                setupConnectionHandlers();
+
+                // بدء الاتصال
+                await connection.start();
+                enableChat();
+                updateStatus("تم الاتصال بالخادم", "text-success");
+                setTimeout(() => updateStatus(""), 2000);
+
+                // جلب المحادثات السابقة إن وجدت
+                 try {
+                                     // مسح المحتوى الحالي أولاً
+                messagesContainer.innerHTML = '';
+              const conversations = await connection.invoke("GetUserConversations") || [];
+
+
+
+              // عرض كل الرسائل مرتبة من الأقدم للأحدث
+              conversations
+                  .sort((a, b) => new Date(a.lastMessageAt) - new Date(b.lastMessageAt))
+                  .forEach(conv => {
+                      const message = conv.lastMessage || "لا توجد رسائل سابقة";
+                      const isAdminReply = conv.isAdminReply || false;
+                      const timestamp = conv.lastMessageAt || conv.createdAt || new Date();
+                      const senderName = isAdminReply ? "الدعم الفني" : "أنت";
+                      addMessage(message, isAdminReply, timestamp, senderName);
+                  });
+                } catch (e) {
+                    console.warn("لا يمكن تحميل المحادثات السابقة:", e);
+                }
+            } catch (err) {
+                console.error("فشل الاتصال بالخادم:", err);
+                updateStatus("فشل الاتصال، جاري إعادة المحاولة...", "text-danger");
+                setTimeout(initializeConnection, 5000);
+            } finally {
+                isConnectionStarting = false;
+            }
+        }
+
+    
+        document.addEventListener('DOMContentLoaded', () => {
+          
+            // أحداث واجهة المستخدم
+            sendButton?.addEventListener('click', sendMessage);
+            messageInput?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // بدء الاتصال
+            initializeConnection();
+        });
+
+      
+    </script>
+}
+

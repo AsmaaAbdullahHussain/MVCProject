@@ -39,6 +39,8 @@ namespace mvc.Controllers
 
 
                         await _sinInManger.SignInAsync(userfromDb, userDataReq.RememberMe);
+                        Response.Cookies.Append("UserName", userfromDb.UserName);
+                        Response.Cookies.Append("UserEmail", userfromDb.Email);
                         return RedirectToAction("Index", "HomePage");
                     }
                 }
@@ -70,16 +72,12 @@ namespace mvc.Controllers
                 {
 
 
-                 
-                        // Add role
-                      //  await _userManger.AddToRoleAsync(userApp, UserFromReq.Role);//AddToRoleAsync ليس  case sestive
+                 // Add role
+                    await _userManger.AddToRoleAsync(userApp,"User");//AddToRoleAsync ليس  case sestive
 
                     await _sinInManger.SignInAsync(userApp, isPersistent: false);
-
-                        return RedirectToAction("Index", "HomePage");
                     
-
-
+                    return RedirectToAction("Index", "HomePage");
 
                 }
                 foreach (var error in result.Errors)

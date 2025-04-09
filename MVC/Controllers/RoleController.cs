@@ -5,7 +5,7 @@ using mvc.ViewModels;
 
 namespace mvc.Controllers
 {
-    [Authorize(Roles ="admin")]
+   // [Authorize(Roles ="admin")]
     public class RoleController : Controller
     {
         private readonly RoleManager<IdentityRole> roleManger;

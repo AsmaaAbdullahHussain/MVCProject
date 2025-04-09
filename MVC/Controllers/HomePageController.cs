@@ -14,7 +14,7 @@ namespace mvc.Controllers
             string id=User.Claims.FirstOrDefault(c=>c.Type==ClaimTypes.NameIdentifier)?.Value; //id_user
 
             ViewBag.UserId = id;
-
+           
             return View();
         }
     }
