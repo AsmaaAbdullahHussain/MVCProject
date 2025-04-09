@@ -39,6 +39,8 @@ namespace mvc.Controllers
 
 
                         await _sinInManger.SignInAsync(userfromDb, userDataReq.RememberMe);
+                        Response.Cookies.Append("UserName", userfromDb.UserName);
+                        Response.Cookies.Append("UserEmail", userfromDb.Email);
                         return RedirectToAction("Index", "HomePage");
                     }
                 }

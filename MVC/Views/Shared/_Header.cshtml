@@ -1,4 +1,6 @@
-﻿<head>
+﻿@using System.Security.Claims
+
+<head>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet" />
 
     <style>
@@ -10,13 +12,76 @@
             margin-left: 1rem;
         }
 
+        /* Category slider styles */
+        .vr-category-slider {
+            width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            padding: 10px 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .vr-category-slider::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .vr-category-slider::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .vr-category-slider__container {
+            display: inline-flex;
+            padding: 0 15px;
+        }
+
+        .vr-category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 15px;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.3s;
+        }
+
+        .vr-category-item:hover {
+            transform: translateY(-3px);
+            color: #28a745;
+        }
+
+        .vr-category-item__icon {
+            width: 50px;
+            height: 50px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .vr-category-item__icon i {
+            font-size: 20px;
+            color: #28a745;
+        }
+
+        .vr-category-item__name {
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
     </style>
 </head>
 
 <header class="vr-header">
     <div class="vr-header__container">
         <!-- Logo Section -->
-        <a href="/pages/home.html" class="vr-header__logo-link">
+        <a href="/" class="vr-header__logo-link">
             <img src="/images/logo/logo.png" alt="Vyrlo" class="vr-header__logo">
         </a>
 
@@ -29,47 +94,13 @@
         <nav class="vr-header__nav" id="mainNav">
             <a href="/HomePage/Index" class="vr-header__link" data-page="home">Home</a>
             <a href="/Business/Getall" class="vr-header__link" data-page="Business">Business</a>
-            <a href="/pages/about.html" class="vr-header__link" data-page="about">About</a>
-            <a href="/pages/contact.html" class="vr-header__link" data-page="contact">Contact</a>
+            <a href="/Package/GetAll" class="vr-header__link" data-page="Packages">Packages</a>
+            <a href="/Category/Index" class="vr-header__link" data-page="Categories">Categories</a>
         </nav>
 
         @if(User.Identity.IsAuthenticated)
         {
-          
-            <div class="vr-header__welcome text-success fw-semibold ms-3">
-                Welcome, @User.Identity.Name!
-            </div>
-            <a href="/Account/Logout" class="vr-btn vr-btn--outline">
-                <span>Logout</span>
-                <i class="fas fa-sign-in-alt"></i>
-
-            </a>
-        }
-        else{
-            <div class="vr-header__guest" id="guestView">
-                <a href="/Account/Login" class="vr-btn vr-btn--outline">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Login</span>
-                </a>
-                <a href="/Account/Register" class="vr-btn vr-btn--primary">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Register</span>
-                </a>
-            </div>
-        }
-     @*    @if(User.IsInRole("admin")){ *@
-     @*        <a href="/role/index.html" class="vr-header__link" data-page="addrole">Addrole</a> *@
-
-     @* //   } *@
-  
-
-        <!-- Auth Section -->
-        <div class="vr-header__auth">
-            <!-- Guest View -->
-       
-
-            <!-- Authenticated View -->
-            <div class="vr-header__user" id="userView" style="display: none;">
+            <div class="vr-header__user" id="userView">
                 <!-- User Menu -->
                 <div class="vr-header__user-menu">
                     <button class="vr-header__user-trigger" id="profileTrigger" aria-expanded="false">
@@ -80,7 +111,7 @@
                                  id="headerAvatar"
                                  onerror="this.src='/images/defaults/default-avatar.png'">
                         </div>
-                        <span class="vr-header__user-name" id="profileName">Hello, User</span>
+                        <span class="vr-header__user-name" id="profileName">Hello, @User.Identity.Name</span>
                         <i class="fas fa-chevron-down vr-header__profile-arrow"></i>
                     </button>
 
@@ -94,35 +125,108 @@
                                          onerror="this.src='/images/defaults/default-avatar.png'">
                                 </div>
                                 <div class="vr-dropdown__user-details">
-                                    <h4 id="dropdownName">User Name</h4>
-                                    <p id="dropdownEmail">user@example.com</p>
+                                    <h4 id="dropdownName">@User.Identity.Name</h4>
+                                    <p id="dropdownEmail">@User.FindFirstValue(ClaimTypes.Email) ?? "user@example.com"</p>
                                 </div>
                             </div>
                             <hr class="vr-dropdown__divider">
-                            <a href="/pages/profile.html" class="vr-dropdown__item">
-                                <i class="fas fa-user"></i>
-                                <span>My Profile</span>
+                            <a href="/Business/getBusinessByUserId/@User.FindFirstValue(ClaimTypes.NameIdentifier)" class="vr-dropdown__item">
+                                <i class="fas fa-building"></i>
+                                <span>My Businesses</span>
                             </a>
-                            <a href="/pages/profile.html?section=addListing#addListing" class="vr-dropdown__item">
+                            <a href="/Business/Add" class="vr-dropdown__item">
                                 <i class="fas fa-plus"></i>
-                                <span>Add Listing</span>
+                                <span>Add Business</span>
                             </a>
-                            <a href="/pages/profile.html?section=listings#listings" class="vr-dropdown__item">
-                                <i class="fas fa-list"></i>
-                                <span>My Listings</span>
-                            </a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a href="/AdminChat/Index" class="vr-dropdown__item">
+                                    <i class="fas fa-headset"></i>
+                                    <span>Admin Chat</span>
+                                </a>
+                                <a href="/Payment/GetAllChecouts" class="vr-dropdown__item">
+                                    <i class="fas fa-money-bill"></i>
+                                    <span>Payment History</span>
+                                </a>
+                            }
                             <hr class="vr-dropdown__divider">
-                            <button class="vr-dropdown__item vr-dropdown__item--danger" id="logoutBtn">
+                            <a href="/Account/Logout" class="vr-dropdown__item vr-dropdown__item--danger" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>Logout</span>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
+        else{
+            <div class="vr-header__guest" id="guestView">
+                <a href="/Account/Login" class="vr-btn vr-btn--outline">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </a>
+                <a href="/Account/Register" class="vr-btn vr-btn--primary">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </a>
+            </div>
+        }
     </div>
 </header>
 
+<!-- Category Slider -->
+<div class="vr-category-slider">
+    <div class="vr-category-slider__container">
+        @await Component.InvokeAsync("CategorySlider")
+    </div>
+</div>
+
 <!-- Toast Container -->
 <div class="vr-toast-container" id="toastContainer"></div>
+
+<script>
+    // Profile dropdown toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileTrigger = document.getElementById('profileTrigger');
+        const profileDropdown = document.getElementById('profileDropdown');
+        
+        if (profileTrigger) {
+            profileTrigger.addEventListener('click', function() {
+                const expanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', !expanded);
+                profileDropdown.classList.toggle('active');
+                
+                // Close dropdown when clicking outside
+                if (!expanded) {
+                    document.addEventListener('click', closeDropdown);
+                } else {
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+            
+            // Prevent dropdown from closing when clicking inside it
+            profileDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        function closeDropdown(e) {
+            if (profileTrigger && !profileTrigger.contains(e.target)) {
+                profileTrigger.setAttribute('aria-expanded', 'false');
+                profileDropdown.classList.remove('active');
+                document.removeEventListener('click', closeDropdown);
+            }
+        }
+        
+        // Mobile menu toggle
+        const menuTrigger = document.getElementById('menuTrigger');
+        const mainNav = document.getElementById('mainNav');
+        
+        if (menuTrigger && mainNav) {
+            menuTrigger.addEventListener('click', function() {
+                menuTrigger.classList.toggle('active');
+                mainNav.classList.toggle('active');
+            });
+        }
+    });
+</script>
