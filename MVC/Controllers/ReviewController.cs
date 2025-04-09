@@ -47,13 +47,14 @@ namespace mvc.Controllers
                 };
                 await _reviewRepository.AddAsync(review);
                 await _reviewRepository.SaveAsync();
+                
                 return RedirectToAction("GetAllByBussniss", new { bussnissId = review.BusinessId });
             }
 
             return View("Add", reviewVM);
 
         }
-        public async Task<IActionResult> Edit(int id)/////////////////
+        public async Task<IActionResult> Edit(int id)/////////////////cancel
         {
             Review review = await _reviewRepository.GetByIdAsync(id);
             if (review == null)
@@ -85,7 +86,7 @@ namespace mvc.Controllers
             }
             return View("Edit", reviewVM);
         }
-        public async Task<ActionResult> Delete(int id)/////
+        public async Task<ActionResult> Delete(int id)/////admin
         {
             Review review = await _reviewRepository.GetByIdAsync(id);
             await _reviewRepository.DeleteAsync(id);
