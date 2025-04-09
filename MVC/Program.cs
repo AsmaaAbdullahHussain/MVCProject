@@ -50,6 +50,7 @@ namespace mvc
             builder.Services.AddScoped<IReviewRepository,ReviewRepository>();
             builder.Services.AddScoped<IBussinessRepository, BussinessRepository>();
             builder.Services.AddScoped<IBusinessFeaturesRepoisitory, BusinessFeaturesRepoisitory>();
+            builder.Services.AddScoped<IOpeningHourRepository, OpeningHourRepository>();
 
 
             builder.Services.AddScoped<ICategoryReposiotry, CategoryRepository>();

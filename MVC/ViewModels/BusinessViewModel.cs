@@ -10,35 +10,51 @@ namespace mvc.ViewModels
     {
         [Key]
         public int Id { get; set; }
-        [Required, MaxLength(100)]
+
+        [Required(ErrorMessage = "Business name is required")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
         public string Name { get; set; }
 
-        //[Required]
-        //public int CategoryId { get; set; } 
+        [Required(ErrorMessage = "Category is required")]
+        public int CategoryId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Description is required")]
+        [MinLength(10, ErrorMessage = "Description must be at least 10 characters")]
         public string Description { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Main image URL is required")]
         public string MainImage { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Latitude is required")]
         public string Latitude { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Longitude is required")]
         public string Longitude { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
-        public bool IsActive { get; set; } = false; //user can`t change it
-        public DateTime? SubscriptionEndDate { get; set; }
-        public List<Category>? Category { get; set; }
 
-        public List<BusinessFeatures>? BusinessFeatures { get; set; }
+        // For category selection dropdown
+        public List<Category> categories { get; set; } = new List<Category>();
 
-        public List<string>? businessesNameList { get; set; }
+        // For duplicate name checking
+        public List<string> businessesNameList { get; set; } = new List<string>(); 
 
-        public int CategoryId { get; set; }
+        // For business features (combined from category and custom features)
+        public List<BusinessFeatures> BusinessFeatures { get; set; } = new List<BusinessFeatures>();
+
+        // For business hours
+        public List<OpeningHour> OpeningHours { get; set; } = new List<OpeningHour>();
         
-        public List<Category>? categories { get; set; }
+        public bool IsActive { get; set; } = false; //user can`t change it
+        
+        public DateTime? SubscriptionEndDate { get; set; }
+
+        // إضافة خاصية للباقة
+        public int PackageId { get; set; } = 1; // افتراضيًا الباقة المجانية
+        public BusinessType? BusinessType { get; set; } = Enums.BusinessType.Regular;
+
+        // إضافة قائمة الباقات للعرض في النموذج (اختياري)
+        public List<Package> Packages { get; set; }
     }
 }

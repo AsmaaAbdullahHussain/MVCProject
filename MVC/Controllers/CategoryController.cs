@@ -168,6 +168,26 @@ namespace mvc.Controllers
             return BadRequest("Feature not found.");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetCategoryFeatures(int categoryId)
+        {
+            var category = await categoryReposiotry.GetByIdAsync(categoryId);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            var features = category.CategoryFeatures.Select(f => new
+            {
+                f.Id,
+                f.Name
+            }).ToList();
+
+            return Json(features);
+        }
+  
+
+
         public async Task<IActionResult> Delete(int id)
         {
             var category = await categoryReposiotry.GetByIdAsync(id);
