@@ -1,0 +1,109 @@
+﻿
+@model RegisterViewModel
+
+@{
+    ViewData["Title"] = "Admin Registeration";
+}
+
+<main>
+    <div class="vr-auth">
+        <div class="vr-auth__container">
+            <div class="vr-auth__content">
+                <div class="vr-auth__header">
+                    <h1 class="vr-auth__title">Admin Registeration</h1>
+                    <p class="vr-auth__subtitle">Enter your details to create a new account</p>
+                </div>
+
+                <form asp-action="RegisterAdmin" asp-controller="Account" method="post" class="vr-auth__form">
+                    <div asp-validation-summary="All" class="div-text-danger"></div>
+                    @Html.AntiForgeryToken()
+
+                    <div class="vr-form-group">
+                        <label asp-for="Name" class="vr-label"></label>
+                        <div class="vr-input-group">
+                            <span class="vr-input-group__addon"><i class="fas fa-user"></i></span>
+                            <input asp-for="Name" class="vr-input" placeholder="Enter your username" required />
+                        </div>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="vr-form-group">
+                        <label asp-for="Email" class="vr-label"></label>
+                        <div class="vr-input-group">
+                            <span class="vr-input-group__addon"><i class="fas fa-envelope"></i></span>
+                            <input asp-for="Email" class="vr-input" placeholder="Enter your email address" required />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="vr-form-group">
+                        <label asp-for="Address" class="vr-label"></label>
+                        <div class="vr-input-group">
+                            <span class="vr-input-group__addon"><i class="fas fa-map-marker-alt"></i></span>
+                            <input asp-for="Address" class="vr-input" placeholder="Enter your address" required />
+                        </div>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="vr-form-group">
+                        <label asp-for="Password" class="vr-label"></label>
+                        <div class="vr-input-group">
+                            <span class="vr-input-group__addon"><i class="fas fa-lock"></i></span>
+                            <input asp-for="Password" class="vr-input" placeholder="Enter your password" required />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="vr-form-group">
+                        <label asp-for="ConfirmPassword" class="vr-label"></label>
+                        <div class="vr-input-group">
+                            <span class="vr-input-group__addon"><i class="fas fa-lock"></i></span>
+                            <input asp-for="ConfirmPassword" class="vr-input" placeholder="Confirm your password" required />
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                    @* <div class="vr-form-group"> *@
+                    @*     <label class="vr-label">Register As:</label> *@
+                    @*     <div class="vr-role-options"> *@
+                    @*         <label class="vr-role-option"> *@
+                    @*             <input type="radio" asp-for="Role" value="admin" /> *@
+                    @*             <div class="vr-role-box"> *@
+                    @*                 <i class="fas fa-user-shield"></i> *@
+                    @*                 <span>Admin</span> *@
+                    @*             </div> *@
+                    @*         </label> *@
+
+                    @*         <label class="vr-role-option"> *@
+                    @*             <input type="radio" asp-for="Role" value="user" /> *@
+                    @*             <div class="vr-role-box"> *@
+                    @*                 <i class="fas fa-user"></i> *@
+                    @*                 <span>User</span> *@
+                    @*             </div> *@
+                    @*         </label> *@
+                    @*     </div> *@
+                    @*     <span asp-validation-for="Role" class="text-danger"></span> *@
+                    @* </div> *@
+
+
+                    <button type="submit" class="vr-btn vr-btn--primary vr-auth__submit" id="registerButton">
+                        <span>Create Account</span>
+                        <div class="vr-spinner vr-spinner--sm"></div>
+                    </button>
+
+                </form>
+
+                <div class="vr-auth__footer">
+                    <p>
+                        Already have an account?
+                        <a href="~/Account/LoginAdmin" class="vr-auth__link">
+                            <span>Sign In</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+

@@ -21,6 +21,11 @@ namespace mvc.Controllers
 
             return View("Login");
         }
+        public IActionResult LoginAdmin()
+        {
+
+            return View("LoginAdmin");
+        }
 
         [HttpPost]
         [AutoValidateAntiforgeryToken]
@@ -36,7 +41,12 @@ namespace mvc.Controllers
                     if (isfound)
                     {
 
-
+                        bool isInRole = await _userManger.IsInRoleAsync(userfromDb, "User");
+                        if (!isInRole)
+                        {
+                            ModelState.AddModelError("", "You are not authorized to login from this page");
+                            return View("Login", userDataReq);
+                        }
 
                         await _sinInManger.SignInAsync(userfromDb, userDataReq.RememberMe);
                         Response.Cookies.Append("UserName", userfromDb.UserName);
@@ -51,9 +61,49 @@ namespace mvc.Controllers
         
         }
 
+        [HttpPost]
+        [AutoValidateAntiforgeryToken]
+        public async Task<IActionResult> LoginAdmin(LoginViewModel userDataReq)
+        {
+            if (ModelState.IsValid)
+            {
+                ApplicationUser userfromDb = await _userManger.FindByNameAsync(userDataReq.Name);
+                if (userfromDb != null)
+                {
+                    bool isfound =
+                        await _userManger.CheckPasswordAsync(userfromDb, userDataReq.Password);
+                    if (isfound)
+                    {
+
+
+                        bool isInRole = await _userManger.IsInRoleAsync(userfromDb, "Admin");
+                        if (!isInRole)
+                        {
+                            ModelState.AddModelError("", "You are not authorized to login from this page");
+                            return View("LoginAdmin", userDataReq);
+                        }
+                        await _sinInManger.SignInAsync(userfromDb, userDataReq.RememberMe);
+                        Response.Cookies.Append("UserName", userfromDb.UserName);
+                        Response.Cookies.Append("UserEmail", userfromDb.Email);
+                        return RedirectToAction("Index", "Dashboard");
+                    }
+                }
+                ModelState.AddModelError("Password", "Incorrect password Or User ❌");
+
+            }
+            return View("LoginAdmin", userDataReq);
+
+        }
+
+
         public IActionResult Register()
         {
             return View("Register");
+        }
+
+        public IActionResult RegisterAdmin()
+        {
+            return View("RegisterAdmin");
         }
         #region Register_Onclick
         [HttpPost]
@@ -91,6 +141,41 @@ namespace mvc.Controllers
         }
 
         #endregion
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterAdmin(RegisterViewModel? UserFromReq)
+        {
+            if (ModelState.IsValid)
+            {
+                ApplicationUser userApp = new ApplicationUser();
+                userApp.Address = UserFromReq.Address;
+                userApp.UserName = UserFromReq.Name;
+                userApp.Email = UserFromReq.Email;
+
+                IdentityResult result = await _userManger.CreateAsync(userApp, UserFromReq.Password);
+                if (result.Succeeded)
+                {
+
+
+                    // Add role
+                    await _userManger.AddToRoleAsync(userApp, "Admin");//AddToRoleAsync ليس  case sestive
+
+                    await _sinInManger.SignInAsync(userApp, isPersistent: false);
+
+                    return RedirectToAction("Index", "Dashboard");
+
+                }
+                foreach (var error in result.Errors)
+                {
+
+                    ModelState.AddModelError("", error.Description); // general error
+                }
+            }
+
+            return View("RegisterAdmin", UserFromReq);
+        }
+
 
         #region LogOut
         public async Task<IActionResult> Logout()
