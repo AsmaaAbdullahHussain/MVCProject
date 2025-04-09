@@ -9,6 +9,7 @@ using System.Linq;
 using System;
 using MVC.Models;
 using MVC.ViewModels;
+using mvc.ViewModels;
 
 namespace mvc.Hubs
 {
@@ -126,7 +127,7 @@ namespace mvc.Hubs
                     Id = m.Id,
                     Content = m.Content,
                     SenderId = m.SenderId,
-                    SenderName = m.Sender.UserName,
+                 
                     SentAt = m.SentAt,
                     IsRead = m.IsRead
                 })
