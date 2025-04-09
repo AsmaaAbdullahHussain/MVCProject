@@ -234,6 +234,23 @@ namespace mvc.Controllers
             }
             return View(business);
         }
+        
+        [HttpGet]
+        public IActionResult GetUserBusinessIds()
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new int[0]);
+            }
+            
+            var businessIds = DbBusiness.GetAll()
+                .Where(b => b.OwnerId == userId)
+                .Select(b => b.Id)
+                .ToList();
+            
+            return Json(businessIds);
+        }
  
 
     }
