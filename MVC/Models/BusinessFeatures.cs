@@ -11,6 +11,6 @@ namespace mvc.Models
         public string Name { get; set; }
         public int BusinessId { get; set; }
         [ForeignKey("BusinessId")]
-        public Business Business { get; set; }
+        public Business? Business { get; set; }
     }
 }

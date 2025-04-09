@@ -55,6 +55,6 @@ namespace mvc.ViewModels
         public BusinessType? BusinessType { get; set; } = Enums.BusinessType.Regular;
 
         // إضافة قائمة الباقات للعرض في النموذج (اختياري)
-        public List<Package> Packages { get; set; }
+        public List<Package>? Packages { get; set; }
     }
 }

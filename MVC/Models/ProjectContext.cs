@@ -33,6 +33,10 @@ namespace MVC.Models
                 .HasOne(b => b.Package)
                 .WithMany(p => p.Businesses)
                 .HasForeignKey(b => b.PackageId);
+            
+            modelBuilder.Entity<Package>()
+                .Property(p => p.Id)
+                .ValueGeneratedNever(); // Disable identity for Id property
         }
     }
 }

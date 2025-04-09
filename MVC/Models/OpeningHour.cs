@@ -20,7 +20,7 @@ namespace mvc.Models
 
         public bool IsClosed { get; set; }
 
-        public string CloseReason { get; set; }
+        public string? CloseReason { get; set; }
 
         // Navigation Properties
         [ForeignKey("BusinessId")]
