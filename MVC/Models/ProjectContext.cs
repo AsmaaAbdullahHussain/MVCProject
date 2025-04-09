@@ -23,5 +23,16 @@ namespace MVC.Models
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
 
+        // إضافة للمعاملات في قاعدة البيانات
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // إعداد علاقة العمل التجاري بالباقة (إذا لم تكن موجودة)
+            modelBuilder.Entity<Business>()
+                .HasOne(b => b.Package)
+                .WithMany(p => p.Businesses)
+                .HasForeignKey(b => b.PackageId);
+        }
     }
 }

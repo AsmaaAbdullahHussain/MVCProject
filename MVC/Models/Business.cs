@@ -44,17 +44,17 @@ namespace mvc.Models
 
         //========================================================
 
-        //[Required]
-        //public BusinessType BusinessType { get; set; } //enum //user can`t change it
+        [Required]
+        public BusinessType BusinessType { get; set; } = BusinessType.Regular; //enum //user can`t change it
 
-        public bool IsActive { get; set; } = false; //user can`t change it 
+        public bool IsActive { get; set; } = true; //user can`t change it 
 
         public DateTime? SubscriptionEndDate { get; set; }  //user can`t change it
 
         // public List<MenuItem> MenuItems { get; set; }
 
-        [ForeignKey("Package")]
-        public int PackageId { get; set; } = 1;
+        [ForeignKey("PackageId")]
+        public int PackageId { get; set; } = 1; // باقة Regular المجانية افتراضيًا
         public Package Package { get; set; } 
 
        
