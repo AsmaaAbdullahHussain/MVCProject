@@ -412,16 +412,22 @@
         <button class="vr-header__menu-trigger" id="menuTrigger" aria-label="Toggle menu">
             <span class="vr-header__menu-icon"></span>
         </button>
-        <!-- Main Navigation -->
 
+        <!-- Main Navigation -->
         <nav class="vr-header__nav" id="mainNav">
             <a href="/HomePage/Index" class="vr-header__link" data-page="home">Home</a>
             <a href="/Business/Getall" class="vr-header__link" data-page="Business">Business</a>
             <a href="/Package/GetAll" class="vr-header__link" data-page="Packages">Packages</a>
             <a href="/Category/Index" class="vr-header__link" data-page="Categories">Categories</a>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/AdminChat/Index" class="vr-header__link" data-page="AdminChat">Admin Chat</a>
+                <a href="/Payment/GetAllChecouts" class="vr-header__link" data-page="Payments">Payments</a>
+            }
         </nav>
 
-        @if(User.Identity.IsAuthenticated)
+        @if (User.Identity.IsAuthenticated)
         {
             <div class="vr-header__user" id="userView">
                 <!-- User Menu -->
@@ -431,7 +437,7 @@
                         <div class="vr-header__notification" id="notificationTrigger">
                             <i class="fas fa-bell vr-header__notification-icon"></i>
                             <span class="vr-header__notification-counter" id="notificationCounter">0</span>
-                            
+
                             <!-- Notification Dropdown -->
                             <div class="vr-notification-dropdown" id="notificationDropdown">
                                 <div class="vr-notification-header">
@@ -439,14 +445,13 @@
                                     <a href="#" id="markAllRead">Mark all as read</a>
                                 </div>
                                 <div class="vr-notification-list" id="notificationList">
-                                    <!-- Review notifications will be loaded here -->
                                     <div class="text-center p-3" id="emptyNotifications" style="display: none;">
                                         <p>No new reviews</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="vr-avatar vr-avatar--md">
                             <img src="/images/defaults/default-avatar.png"
                                  alt="Profile"
@@ -473,16 +478,10 @@
                                 </div>
                             </div>
                             <hr class="vr-dropdown__divider">
-                            <a href="/Business/GetUserBusinessIds" class="vr-dropdown__item">
-                                <i class="fas fa-building"></i>
-                                <span>My Businesses</span>
-                            </a>
-                            <a href="/Business/Add" class="vr-dropdown__item">
-                                <i class="fas fa-plus"></i>
-                                <span>Add Business</span>
-                            </a>
+
                             @if (User.IsInRole("Admin"))
                             {
+                                <!-- Admin Menu Items -->
                                 <a href="/AdminChat/Index" class="vr-dropdown__item">
                                     <i class="fas fa-headset"></i>
                                     <span>Admin Chat</span>
@@ -492,6 +491,19 @@
                                     <span>Payment History</span>
                                 </a>
                             }
+                            else
+                            {
+                                <!-- Regular User Menu Items -->
+                                <a href="/Business/GetUserBusinessIds" class="vr-dropdown__item">
+                                    <i class="fas fa-building"></i>
+                                    <span>My Businesses</span>
+                                </a>
+                                <a href="/Business/Add" class="vr-dropdown__item">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Business</span>
+                                </a>
+                            }
+
                             <hr class="vr-dropdown__divider">
                             <a href="/Account/Logout" class="vr-dropdown__item vr-dropdown__item--danger" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -502,7 +514,8 @@
                 </div>
             </div>
         }
-        else{
+        else
+        {
             <div class="vr-header__guest" id="guestView">
                 <a href="/Account/Login" class="vr-btn vr-btn--outline">
                     <i class="fas fa-sign-in-alt"></i>
