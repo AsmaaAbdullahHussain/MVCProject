@@ -33,7 +33,9 @@ public class HomeController : Controller
             var sponsoredBusinesses = await _businessRepository.GetAll(b => 
                 b.IsActive && 
                 b.PackageId > 1// Assuming packageId 1 is the free package
-              
+                  
+
+
             )
             .Include(b => b.Category)
             .Include(b => b.BusinessFeatures)
@@ -50,8 +52,8 @@ public class HomeController : Controller
             // Pagination info
             var totalBusinesses = await _businessRepository.GetAll(b => 
                 b.IsActive && 
-                b.PackageId > 1 && 
-                b.SubscriptionEndDate > DateTime.Now
+                b.PackageId > 1 
+              //  b.SubscriptionEndDate > DateTime.Now
             ).CountAsync();
             
             ViewBag.CurrentPage = page;

@@ -298,137 +298,114 @@ namespace mvc.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveEdit(BusinessViewModel busFromReq)
         {
-            // التحقق من صحة البيانات
             if (!ModelState.IsValid)
             {
-                busFromReq.categories = Dbcategory.GetAll().ToList();
-                busFromReq.BusinessFeatures = DbBusinessFeatures.GetAll(b => b.BusinessId == busFromReq.Id).ToList();
-                busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
+                await ReloadBusinessData(busFromReq);
                 return View("Edit", busFromReq);
             }
+
+            // بدء transaction واحد فقط
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                using (var transaction = _context.Database.BeginTransaction())
+                // التحقق من تكرار الاسم
+                var nameExists = await DbBusiness.GetAll()
+                    .AnyAsync(b => b.Id != busFromReq.Id && b.Name == busFromReq.Name);
+
+                if (nameExists)
                 {
-                    try
-                    {
-                        // التحقق من وجود الاسم لعمل تجاري آخر
-                        var existingBusiness = await DbBusiness.GetAll(b => b.Name == busFromReq.Name && b.Id != busFromReq.Id).FirstOrDefaultAsync();
-                        if (existingBusiness != null)
-                        {
-                            ModelState.AddModelError("Name", "هذا الاسم مستخدم بالفعل");
-                            throw new InvalidOperationException("Business name already exists");
-                        }
-
-                        // التحقق من ملكية المستخدم للعمل التجاري
-                        Business oldBusiness = await DbBusiness.GetByIdAsync(busFromReq.Id);
-                        string currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                        if (oldBusiness == null)
-                        {
-                            return NotFound("العمل التجاري غير موجود");
-                        }
-
-                        // التحقق من أن المستخدم هو مالك العمل التجاري أو مسؤول
-                        if (oldBusiness.OwnerId != currentUserId && !User.IsInRole("Admin"))
-                        {
-                            return Forbid("لا يمكنك تعديل عمل تجاري لا تملكه");
-                        }
-
-                        // تحديث بيانات العمل التجاري
-                        oldBusiness.Name = busFromReq.Name;
-                        oldBusiness.Longitude = busFromReq.Longitude;
-                        oldBusiness.Latitude = busFromReq.Latitude;
-                        oldBusiness.CategoryId = busFromReq.CategoryId;
-                        oldBusiness.Description = busFromReq.Description;
-                        oldBusiness.MainImage = busFromReq.MainImage;
-                        oldBusiness.Address = busFromReq.Address;
-                        // لا نقوم بتغيير المالك OwnerId
-
-                        // تحديث العمل التجاري
-                        DbBusiness.Update(oldBusiness);
-                        await DbBusiness.SaveAsync();
-
-                        // تحديث الميزات
-                        if (busFromReq.BusinessFeatures != null && busFromReq.BusinessFeatures.Any())
-                        {
-                            // حذف الميزات الحالية
-                            var existingFeatures = DbBusinessFeatures.GetAll(f => f.BusinessId == busFromReq.Id).ToList();
-                            foreach (var feature in existingFeatures)
-                            {
-                                await DbBusinessFeatures.DeleteAsync(feature.Id);
-                            }
-                            
-                            // إضافة الميزات الجديدة
-                            foreach (var feature in busFromReq.BusinessFeatures)
-                            {
-                                if (!string.IsNullOrWhiteSpace(feature.Name))
-                                {
-                                    feature.BusinessId = busFromReq.Id;
-                                    await DbBusinessFeatures.AddAsync(feature);
-                                }
-                            }
-
-                            await DbBusinessFeatures.SaveAsync();
-                        }
-
-                        // تحديث ساعات العمل
-                        var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
-                        if (openingHourRepository == null)
-                        {
-                            // Log the error
-                            Console.WriteLine("Error: Could not resolve IOpeningHourRepository");
-                            // Handle the missing service appropriately - either throw an exception or continue without it
-                        } 
-                        else 
-                        {
-                            // Use the service
-                            if (busFromReq.OpeningHours != null && busFromReq.OpeningHours.Any())
-                            {
-                                // استخدام طريقة تحديث جماعية لساعات العمل
-                                await openingHourRepository.UpdateBusinessHoursAsync(busFromReq.Id, busFromReq.OpeningHours);
-                            }
-                        }
-
-                        await transaction.CommitAsync();
-                        TempData["Success"] = "تم تحديث العمل التجاري بنجاح";
-                        return RedirectToAction("GetAll");
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        await transaction.RollbackAsync();
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        await transaction.RollbackAsync();
-                        Console.WriteLine($"Error in transaction: {ex.Message}");
-                        throw;
-                    }
+                    ModelState.AddModelError("Name", "هذا الاسم مستخدم بالفعل");
+                    await ReloadBusinessData(busFromReq);
+                    return View("Edit", busFromReq);
                 }
-            }
-            catch (InvalidOperationException ex)
-            {
-                // إعادة عرض النموذج مع رسالة الخطأ
-                busFromReq.categories = Dbcategory.GetAll().ToList();
-                busFromReq.BusinessFeatures = DbBusinessFeatures.GetAll(b => b.BusinessId == busFromReq.Id).ToList();
-                busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
-                return View("Edit", busFromReq);
+
+                // جلب وتحديث البيانات الأساسية
+                var businessToUpdate = await DbBusiness.GetByIdAsync(busFromReq.Id);
+                if (businessToUpdate == null) return NotFound("العمل التجاري غير موجود");
+
+                // التحقق من الملكية
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (businessToUpdate.OwnerId != currentUserId && !User.IsInRole("Admin"))
+                {
+                    return Forbid("لا يمكنك تعديل عمل تجاري لا تملكه");
+                }
+
+                // تحديث الخصائص
+                businessToUpdate.Name = busFromReq.Name;
+                businessToUpdate.Longitude = busFromReq.Longitude;
+                businessToUpdate.Latitude = busFromReq.Latitude;
+                businessToUpdate.CategoryId = busFromReq.CategoryId;
+                businessToUpdate.Description = busFromReq.Description;
+                businessToUpdate.MainImage = busFromReq.MainImage;
+                businessToUpdate.Address = busFromReq.Address;
+                businessToUpdate.IsActive = busFromReq.IsActive;
+
+                // تحديث الميزات
+                await UpdateBusinessFeatures(busFromReq);
+
+                // تعديل طريقة تحديث ساعات العمل لتجنب transaction جديد
+                await UpdateOpeningHoursWithoutTransaction(busFromReq.Id, busFromReq.OpeningHours);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["Success"] = "تم تحديث العمل التجاري بنجاح";
+                return RedirectToAction("GetAll");
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"حدث خطأ أثناء تحديث البيانات: {ex.Message}");
-                busFromReq.categories = Dbcategory.GetAll().ToList();
-                busFromReq.BusinessFeatures = DbBusinessFeatures.GetAll(b => b.BusinessId == busFromReq.Id).ToList();
-                busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
+                await transaction.RollbackAsync();
+                ModelState.AddModelError("", $"حدث خطأ: {ex.Message}");
+                await ReloadBusinessData(busFromReq);
                 return View("Edit", busFromReq);
             }
         }
 
+        private async Task UpdateOpeningHoursWithoutTransaction(int businessId, List<OpeningHour> openingHours)
+        {
+            if (openingHours == null || !openingHours.Any()) return;
+
+            // حذف الساعات القديمة
+            var existingHours = await _context.OpeningHours
+                .Where(h => h.BusinessId == businessId)
+                .ToListAsync();
+
+            _context.OpeningHours.RemoveRange(existingHours);
+
+            // إضافة الساعات الجديدة
+            foreach (var hour in openingHours)
+            {
+                hour.BusinessId = businessId;
+                _context.OpeningHours.Add(hour);
+            }
+        }
+
+        private async Task ReloadBusinessData(BusinessViewModel model)
+        {
+            model.categories = await Dbcategory.GetAll().ToListAsync();
+            model.BusinessFeatures = await DbBusinessFeatures.GetAll(b => b.BusinessId == model.Id).ToListAsync();
+            model.businessesNameList = await DbBusiness.GetAll().Select(b => b.Name).ToListAsync();
+        }
+
+        private async Task UpdateBusinessFeatures(BusinessViewModel model)
+        {
+            if (model.BusinessFeatures == null || !model.BusinessFeatures.Any()) return;
+
+            var existingFeatures = await DbBusinessFeatures.GetAll(f => f.BusinessId == model.Id).ToListAsync();
+            foreach (var feature in existingFeatures)
+            {
+                await DbBusinessFeatures.DeleteAsync(feature.Id);
+            }
+
+            foreach (var feature in model.BusinessFeatures.Where(f => !string.IsNullOrWhiteSpace(f.Name)))
+            {
+                feature.BusinessId = model.Id;
+                await DbBusinessFeatures.AddAsync(feature);
+            }
+        }
         public IActionResult GetBusinessByUserId(string id)
         {
-            // الكود السابق مع تحسين معالجة الخطأ
             try
             {
                 if (string.IsNullOrEmpty(id))

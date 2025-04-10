@@ -12,6 +12,7 @@
                     <h1 class="vr-auth__title">Sign In</h1>
                     <p class="vr-auth__subtitle">Welcome back! Please login to your account</p>
                 </div>
+                <div asp-validation-summary="All" class="div-text-danger"></div>
 
                 <form asp-action="Login" asp-controller="Account" method="post" class="vr-auth__form">
                     @Html.AntiForgeryToken()
@@ -60,3 +61,6 @@
         </div>
     </div>
 </main>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
