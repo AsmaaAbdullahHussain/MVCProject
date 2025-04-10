@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using mvc.Models.Authorize;
 using mvc.ViewModels;
@@ -95,12 +96,14 @@ namespace mvc.Controllers
 
         }
 
-
+        
         public IActionResult Register()
         {
             return View("Register");
         }
 
+
+        [Authorize(Roles = "Admin")]
         public IActionResult RegisterAdmin()
         {
             return View("RegisterAdmin");

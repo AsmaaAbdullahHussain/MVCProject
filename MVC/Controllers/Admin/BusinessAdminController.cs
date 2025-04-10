@@ -10,14 +10,14 @@ using System.Security.Claims;
 
 namespace mvc.Controllers
 {
-    public class BusinessController : Controller
+    public class BusinessAdminController : Controller
     {
         private readonly IBussinessRepository DbBusiness;
         private readonly ICategoryReposiotry Dbcategory;
         private readonly IBusinessFeaturesRepoisitory DbBusinessFeatures;
         private readonly ProjectContext _context;
 
-        public BusinessController(IBussinessRepository bussinessRepository, 
+        public BusinessAdminController(IBussinessRepository bussinessRepository, 
                                 IBusinessFeaturesRepoisitory businessFeaturesReposiotry, 
                                 ICategoryReposiotry categoryReposiotry,
                                 ProjectContext context)
@@ -304,6 +304,7 @@ namespace mvc.Controllers
                 return View("Edit", busFromReq);
             }
 
+            // بدء transaction واحد فقط
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try

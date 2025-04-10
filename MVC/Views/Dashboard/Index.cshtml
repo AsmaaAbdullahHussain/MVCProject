@@ -1,7 +1,15 @@
-﻿
-@{
-    ViewData["Title"] = "Index";
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["ShowHeader"] = true;
 }
 
+<div class="page-wrapper">
+    <div class="vr-sidebar">
+        @await Html.PartialAsync("_Sidebar")
+    </div>
 
+    <div class="content-wrapper">
+   
+    </div>
+</div>
 

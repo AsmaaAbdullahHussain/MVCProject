@@ -1,4 +1,8 @@
 ﻿@using System.Security.Claims
+@{
+    ViewData["ShowSidebar"] = false;  // أو false
+    ViewData["ShowHeader"] = true;  // أو true
+}
 
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet" />
@@ -415,14 +419,14 @@
 
         <!-- Main Navigation -->
         <nav class="vr-header__nav" id="mainNav">
-            <a href="/HomePage/Index" class="vr-header__link" data-page="home">Home</a>
-            <a href="/Business/Getall" class="vr-header__link" data-page="Business">Business</a>
-            <a href="/Package/GetAll" class="vr-header__link" data-page="Packages">Packages</a>
-            <a href="/Category/Index" class="vr-header__link" data-page="Categories">Categories</a>
-
-            @if (User.IsInRole("Admin"))
+           
+            @if (User.IsInRole("User"))
             {
-                <a href="/AdminChat/Index" class="vr-header__link" data-page="AdminChat">Admin Chat</a>
+                <a href="/HomePage/Index" class="vr-header__link" data-page="home">Home</a>
+                <a href="/Business/Getall" class="vr-header__link" data-page="Business">Business</a>
+                <a href="/Package/GetAll" class="vr-header__link" data-page="Packages">Packages</a>
+                <a href="/Category/Index" class="vr-header__link" data-page="Categories">Categories</a>
+
                 <a href="/Payment/GetAllChecouts" class="vr-header__link" data-page="Payments">Payments</a>
             }
         </nav>
@@ -433,6 +437,8 @@
                 <!-- User Menu -->
                 <div class="vr-header__user-menu">
                     <button class="vr-header__user-trigger" id="profileTrigger" aria-expanded="false">
+                        @if(User.IsInRole("User"))
+                        {
                         <!-- Notification Icon -->
                         <div class="vr-header__notification" id="notificationTrigger">
                             <i class="fas fa-bell vr-header__notification-icon"></i>
@@ -451,7 +457,8 @@
                                 </div>
                             </div>
                         </div>
-
+                        }
+                       
                         <div class="vr-avatar vr-avatar--md">
                             <img src="/images/defaults/default-avatar.png"
                                  alt="Profile"
@@ -461,6 +468,8 @@
                         </div>
                         <span class="vr-header__user-name" id="profileName">Hello, @User.Identity.Name</span>
                         <i class="fas fa-chevron-down vr-header__profile-arrow"></i>
+                        
+                    
                     </button>
 
                     <div class="vr-header__dropdown" id="profileDropdown">
@@ -494,14 +503,7 @@
                             else
                             {
                                 <!-- Regular User Menu Items -->
-                                <a href="/Business/GetUserBusinessIds" class="vr-dropdown__item">
-                                    <i class="fas fa-building"></i>
-                                    <span>My Businesses</span>
-                                </a>
-                                <a href="/Business/Add" class="vr-dropdown__item">
-                                    <i class="fas fa-plus"></i>
-                                    <span>Add Business</span>
-                                </a>
+                              
                             }
 
                             <hr class="vr-dropdown__divider">
