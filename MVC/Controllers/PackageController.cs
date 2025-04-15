@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-//using mvc.Migrations;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using System.Threading.Tasks;
@@ -8,19 +8,27 @@ using mvc.ViewModels.PackageVM;
 
 namespace mvc.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class PackageController : Controller
     {
+        private readonly ProjectContext _context;
         IPackageRepository _packageRepository;
-        public PackageController(IPackageRepository packageRepository)
+
+        public PackageController(ProjectContext context, IPackageRepository packageRepository)
         {
+            _context = context;
             _packageRepository = packageRepository;
         }
+
         public async Task<IActionResult> GetAll()
         {
-            List<Package> packages = await _packageRepository.GetAll().ToListAsync();
+            var packages = await _context.Packages
+                .Include(p => p.Features)
+                .ToListAsync();
+                
             return View(packages);
-
         }
+
         public async Task<IActionResult> GetById(int id)
         {
             Package package =await _packageRepository.GetByIdAsync(id);

@@ -1,6 +1,6 @@
 ﻿using mvc.Models;
 using mvc.RepoInterfaces;
-using MVC.Models;
+using mvc.Models;
 using System.Linq.Expressions;
 
 namespace mvc.Repositories

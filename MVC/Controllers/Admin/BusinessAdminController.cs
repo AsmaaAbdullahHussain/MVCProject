@@ -4,7 +4,7 @@ using mvc.Enums;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using mvc.ViewModels;
-using MVC.Models;
+using mvc.Models;
 using System.Linq.Expressions;
 using System.Security.Claims;
 
@@ -85,11 +85,11 @@ namespace mvc.Controllers
         {
             try
             {
-                // التأكد من تسجيل دخول المستخدم
+                // Check if user is logged in
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    ModelState.AddModelError("", "يجب تسجيل الدخول لإضافة عمل تجاري");
+                    ModelState.AddModelError("", "You must be logged in to add a business");
                     busFromReq.categories = Dbcategory.GetAll().ToList();
                     busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
                     return View("Add", busFromReq);
@@ -97,7 +97,7 @@ namespace mvc.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    // التحقق من عدم تكرار اسم العمل
+                    // Check for duplicate business name
                     bool isExist = await DbBusiness.IsBusinessExistAsync(busFromReq.Name);
                     if (isExist)
                     {
@@ -107,17 +107,17 @@ namespace mvc.Controllers
                         return View("Add", busFromReq);
                     }
 
-                    // استخدام معاملة قاعدة بيانات واحدة لضمان تكامل العملية
+                    // Use a database transaction to ensure integrity
                     using (var transaction = _context.Database.BeginTransaction())
                     {
                         try
                         {
-                            // تعيين باقة Regular المجانية افتراضيًا
-                            int defaultPackageId = 1; // باقة Regular المجانية
+                            // Set default Regular package
+                            int defaultPackageId = 1; // Regular free package
 
                             Console.WriteLine($"Saving new business: {busFromReq.Name}, Category: {busFromReq.CategoryId}, Owner: {userId}");
 
-                            // إنشاء كائن العمل التجاري
+                            // Create business object
                             Business NewBusiness = new Business
                             {
                                 Name = busFromReq.Name,
@@ -134,7 +134,7 @@ namespace mvc.Controllers
                                 BusinessType = BusinessType.Regular
                             };
 
-                            // حفظ العمل التجاري
+                            // Save business
                             await DbBusiness.AddAsync(NewBusiness);
                             int saveResult = await DbBusiness.SaveAsync();
                             if (saveResult <= 0)
@@ -144,7 +144,7 @@ namespace mvc.Controllers
                             
                             Console.WriteLine($"Business saved successfully with result: {saveResult}");
 
-                            // الحصول على معرف العمل المضاف
+                            // Get ID of the added business
                             int newBusinessId = DbBusiness.getIdByName(NewBusiness.Name);
                             if (newBusinessId <= 0)
                             {
@@ -152,7 +152,7 @@ namespace mvc.Controllers
                             }
                             Console.WriteLine($"Retrieved business ID: {newBusinessId}");
 
-                            // معالجة ميزات العمل التجاري
+                            // Handle business features
                             if (busFromReq.BusinessFeatures != null && busFromReq.BusinessFeatures.Any())
                             {
                                 int featuresAdded = 0;
@@ -175,7 +175,7 @@ namespace mvc.Controllers
                                 }
                             }
 
-                            // معالجة ساعات العمل
+                            // Handle opening hours
                             var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
                             if (openingHourRepository == null)
                             {
@@ -208,31 +208,31 @@ namespace mvc.Controllers
                             }
 
                             await transaction.CommitAsync();
-                            TempData["Success"] = "تم إنشاء العمل التجاري بنجاح!";
+                            TempData["Success"] = "Business has been created successfully!";
                             return RedirectToAction("GetAll");
                         }
                         catch (Exception ex)
                         {
                             await transaction.RollbackAsync();
                             Console.WriteLine($"Transaction rolled back: {ex.Message}");
-                            throw; // إعادة رمي الاستثناء للتعامل معه في كتلة catch الخارجية
+                            throw; // Rethrow to be handled by outer catch
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                // تسجيل الخطأ
+                // Log error
                 Console.WriteLine($"Error saving business: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
                 }
-                ModelState.AddModelError("", "حدث خطأ أثناء حفظ بيانات العمل التجاري. يرجى المحاولة مرة أخرى.");
+                ModelState.AddModelError("", "An error occurred while saving the business. Please try again.");
             }
 
-            // إعادة تحميل البيانات المطلوبة للنموذج في حالة الخطأ
+            // Reload required data for the form in case of error
             busFromReq.categories = Dbcategory.GetAll().ToList();
             busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
             return View("Add", busFromReq);
@@ -244,11 +244,13 @@ namespace mvc.Controllers
 
             if (business == null)
             {
+                TempData["Error"] = "Business not found";
                 return NotFound();
             }
 
             await DbBusiness.DeleteAsync(id);
             await DbBusiness.SaveAsync();
+            TempData["Success"] = "Business has been deleted successfully";
             return RedirectToAction("GetAll");
         }
 
@@ -258,6 +260,7 @@ namespace mvc.Controllers
 
             if (business == null)
             {
+                TempData["Error"] = "Business not found";
                 return NotFound();
             }
 
@@ -304,34 +307,39 @@ namespace mvc.Controllers
                 return View("Edit", busFromReq);
             }
 
-            // بدء transaction واحد فقط
+            // Start a single transaction
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // التحقق من تكرار الاسم
+                // Check for duplicate name
                 var nameExists = await DbBusiness.GetAll()
                     .AnyAsync(b => b.Id != busFromReq.Id && b.Name == busFromReq.Name);
 
                 if (nameExists)
                 {
-                    ModelState.AddModelError("Name", "هذا الاسم مستخدم بالفعل");
+                    ModelState.AddModelError("Name", "This name is already in use");
                     await ReloadBusinessData(busFromReq);
                     return View("Edit", busFromReq);
                 }
 
-                // جلب وتحديث البيانات الأساسية
+                // Get and update basic data
                 var businessToUpdate = await DbBusiness.GetByIdAsync(busFromReq.Id);
-                if (businessToUpdate == null) return NotFound("العمل التجاري غير موجود");
+                if (businessToUpdate == null)
+                {
+                    TempData["Error"] = "Business not found";
+                    return NotFound();
+                }
 
-                // التحقق من الملكية
+                // Check ownership
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (businessToUpdate.OwnerId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    return Forbid("لا يمكنك تعديل عمل تجاري لا تملكه");
+                    TempData["Error"] = "You don't have permission to edit this business";
+                    return Forbid();
                 }
 
-                // تحديث الخصائص
+                // Update properties
                 businessToUpdate.Name = busFromReq.Name;
                 businessToUpdate.Longitude = busFromReq.Longitude;
                 businessToUpdate.Latitude = busFromReq.Latitude;
@@ -341,22 +349,22 @@ namespace mvc.Controllers
                 businessToUpdate.Address = busFromReq.Address;
                 businessToUpdate.IsActive = busFromReq.IsActive;
 
-                // تحديث الميزات
+                // Update features
                 await UpdateBusinessFeatures(busFromReq);
 
-                // تعديل طريقة تحديث ساعات العمل لتجنب transaction جديد
+                // Update opening hours without a new transaction
                 await UpdateOpeningHoursWithoutTransaction(busFromReq.Id, busFromReq.OpeningHours);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["Success"] = "تم تحديث العمل التجاري بنجاح";
+                TempData["Success"] = "Business has been updated successfully";
                 return RedirectToAction("GetAll");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                ModelState.AddModelError("", $"حدث خطأ: {ex.Message}");
+                ModelState.AddModelError("", $"Error: {ex.Message}");
                 await ReloadBusinessData(busFromReq);
                 return View("Edit", busFromReq);
             }
@@ -410,13 +418,14 @@ namespace mvc.Controllers
             {
                 if (string.IsNullOrEmpty(id))
                 {
-                    return BadRequest("معرف المستخدم مطلوب");
+                    return BadRequest("User ID is required");
                 }
                 
                 List<Business> businesses = DbBusiness.GetAll().Where(b => b.OwnerId == id).ToList();
                 if (businesses.Count == 0)
                 {
-                    return Content("لا توجد أعمال تجارية لهذا المستخدم");
+                    ViewBag.Message = "No businesses found for this user";
+                    return View("myBusiness", new List<Business>());
                 }
                 
                 return View("myBusiness", businesses);
@@ -424,7 +433,7 @@ namespace mvc.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching user businesses: {ex.Message}");
-                return StatusCode(500, "حدث خطأ أثناء استرجاع الأعمال التجارية");
+                return StatusCode(500, "An error occurred while retrieving the businesses");
             }
         }
 
@@ -434,13 +443,13 @@ namespace mvc.Controllers
             {
                 if (id <= 0)
                 {
-                    return BadRequest("معرف العمل التجاري غير صحيح");
+                    return BadRequest("Invalid business ID");
                 }
                 
                 Business business = await DbBusiness.GetByIdAsync(id);
                 if (business == null)
                 {
-                    return NotFound("لم يتم العثور على العمل التجاري");
+                    return NotFound("Business not found");
                 }
                 
                 return View(business);
@@ -448,7 +457,7 @@ namespace mvc.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching business: {ex.Message}");
-                return StatusCode(500, "حدث خطأ أثناء استرجاع العمل التجاري");
+                return StatusCode(500, "An error occurred while retrieving the business");
             }
         }
 
@@ -460,7 +469,7 @@ namespace mvc.Controllers
                 string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Json(new { success = false, message = "المستخدم غير مسجل الدخول", data = new int[0] });
+                    return Json(new { success = false, message = "User is not logged in", data = new int[0] });
                 }
                 
                 var businessIds = DbBusiness.GetAll()
@@ -473,7 +482,7 @@ namespace mvc.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching user business IDs: {ex.Message}");
-                return Json(new { success = false, message = "حدث خطأ أثناء استرجاع معرفات الأعمال التجارية", data = new int[0] });
+                return Json(new { success = false, message = "An error occurred while retrieving business IDs", data = new int[0] });
             }
         }
 
@@ -500,7 +509,7 @@ namespace mvc.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error searching businesses: {ex.Message}");
-                TempData["Error"] = "حدث خطأ أثناء البحث عن الأعمال التجارية";
+                TempData["Error"] = "An error occurred while searching for businesses";
                 return RedirectToAction("GetAll");
             }
         }

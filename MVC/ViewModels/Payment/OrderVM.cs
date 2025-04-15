@@ -1,7 +1,7 @@
 ﻿using Microsoft.Build.Evaluation;
 using mvc.Enums;
 using mvc.Repositories;
-using MVC.Models;
+using mvc.Models;
 
 namespace mvc.ViewModels.Payment
 {

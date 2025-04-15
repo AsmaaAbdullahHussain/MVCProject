@@ -52,7 +52,7 @@ namespace mvc.Controllers
                         await _sinInManger.SignInAsync(userfromDb, userDataReq.RememberMe);
                         Response.Cookies.Append("UserName", userfromDb.UserName);
                         Response.Cookies.Append("UserEmail", userfromDb.Email);
-                        return RedirectToAction("Index", "HomePage");
+                        return RedirectToAction("Index", "Home");
                     }
                 }
                 ModelState.AddModelError("Password", "Incorrect password Or User ❌");
@@ -126,11 +126,11 @@ namespace mvc.Controllers
 
 
                  // Add role
-                    await _userManger.AddToRoleAsync(userApp,"User");//AddToRoleAsync ليس  case sestive
+                    await _userManger.AddToRoleAsync(userApp,"User");
 
                     await _sinInManger.SignInAsync(userApp, isPersistent: false);
                     
-                    return RedirectToAction("Index", "HomePage");
+                    return RedirectToAction("Index", "Home");
 
                 }
                 foreach (var error in result.Errors)

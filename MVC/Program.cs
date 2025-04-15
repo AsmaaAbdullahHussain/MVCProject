@@ -5,8 +5,7 @@ using mvc.Models;
 using mvc.Models.Authorize;
 using mvc.RepoInterfaces;
 using mvc.Repositories;
-using MVC.Hubs;
-using MVC.Models;
+
 
 namespace mvc
 {
@@ -23,14 +22,10 @@ namespace mvc
                {
                    options.Password.RequireDigit = false;
 
-
-
                    options.Password.RequireLowercase = false;
                    options.Password.RequireUppercase = false;
                    options.Password.RequireNonAlphanumeric = false;
                    options.User.RequireUniqueEmail = true;
-
-
 
                }
 
@@ -56,19 +51,49 @@ namespace mvc
             builder.Services.AddScoped<ICategoryReposiotry, CategoryRepository>();
            // builder.Services.AddScoped<IcategoryFeaturesRepository, CategoryFeatures>();
 
+            // Add SignalR services
+            builder.Services.AddSignalR();
+
+            // Make sure CORS is configured correctly if needed
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy", builder =>
+                {
+                    builder.WithOrigins("https://cdn.jsdelivr.net", "https://unpkg.com")
+                           .AllowAnyMethod()
+                           .AllowAnyHeader()
+                           .AllowCredentials();
+                });
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Error");
             }
+            else
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseStatusCodePagesWithReExecute("/Error/{0}");
+            app.UseHsts();
+
+            // Configure static file middleware to serve SignalR client library
             app.UseStaticFiles();
 
+            app.UseStaticFiles();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-            app.MapHub<Chathub>("/chathub");
+
+            app.UseCors("CorsPolicy");
+
+            app.MapHub<ChatHub>("/chathub");
+             app.MapHub<NotificationHub>("/notificationhub");
             app.MapHub<ReviewHub>("/reviewhub");
             app.MapControllerRoute(
                 "pay", "Payment/Success/{id}/{businessId}/{packageid}/{subscription}",
@@ -77,6 +102,24 @@ namespace mvc
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
+            // Add the health check endpoint
+            app.MapControllerRoute(
+                name: "health-check",
+                pattern: "/health-check",
+                defaults: new { controller = "Health", action = "HealthCheck" });
+
+            // Configure error handling
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+                app.UseStatusCodePagesWithReExecute("/Error/{0}");
+                app.UseHsts();
+            }
 
             app.Run();
         }

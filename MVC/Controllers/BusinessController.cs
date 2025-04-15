@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using mvc.Enums;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using mvc.ViewModels;
-using MVC.Models;
+using mvc.Models;
 using System.Linq.Expressions;
 using System.Security.Claims;
 
@@ -14,17 +15,20 @@ namespace mvc.Controllers
     {
         private readonly IBussinessRepository DbBusiness;
         private readonly ICategoryReposiotry Dbcategory;
+        private readonly IOpeningHourRepository openingHourRepository;
         private readonly IBusinessFeaturesRepoisitory DbBusinessFeatures;
         private readonly ProjectContext _context;
 
         public BusinessController(IBussinessRepository bussinessRepository, 
                                 IBusinessFeaturesRepoisitory businessFeaturesReposiotry, 
                                 ICategoryReposiotry categoryReposiotry,
+                                IOpeningHourRepository openingHourRepository,
                                 ProjectContext context)
         {
             this.DbBusiness = bussinessRepository;
             this.DbBusinessFeatures = businessFeaturesReposiotry;
             this.Dbcategory = categoryReposiotry;
+            this.openingHourRepository = openingHourRepository;
             this._context = context;
         }
 
@@ -35,12 +39,115 @@ namespace mvc.Controllers
 
         // return all business if pageNumber or size == Null 
         // or return some business if we want to divide the view to some pages
-        public IActionResult GetAll(int packetId = 0, int pageNumber = 0, int size = 0)
+        public IActionResult GetAll(int pageNumber = 1, int size = 12, string searchTerm = "", string category = "", 
+                                    string rating = "", string package = "", string status = "", string sort = "nameAsc")
         {
-            List<Business> businessList = DbBusiness.GetAll(packetId, pageNumber, size).ToList();
-            return View("GetAll", businessList);
+            try
+            {
+                // Start with all businesses
+                var query = DbBusiness.GetAll();
+                
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    searchTerm = searchTerm.ToLower();
+                    query = query.Where(b => 
+                        b.Name.ToLower().Contains(searchTerm) || 
+                        (b.Description != null && b.Description.ToLower().Contains(searchTerm)));
+                }
+                
+                // Apply category filter
+                if (!string.IsNullOrWhiteSpace(category) && int.TryParse(category, out int categoryId))
+                {
+                    query = query.Where(b => b.CategoryId == categoryId);
+                }
+                
+                // Apply rating filter
+                if (!string.IsNullOrWhiteSpace(rating) && float.TryParse(rating, out float minRating))
+                {
+                    query = query.Where(b => b.Reviews.Any() && b.Reviews.Average(r => r.Rating) >= minRating);
+                }
+                
+                // Apply package filter
+                if (!string.IsNullOrWhiteSpace(package) && int.TryParse(package, out int packageId))
+                {
+                    query = query.Where(b => b.PackageId == packageId);
+                }
+                
+                // Apply status filter
+                if (!string.IsNullOrWhiteSpace(status) && bool.TryParse(status, out bool isActive))
+                {
+                    query = query.Where(b => b.IsActive == isActive);
+                }
+                
+                // Count total for pagination
+                int totalItems = query.Count();
+                int totalPages = (int)Math.Ceiling(totalItems / (float)size);
+                
+                // Apply sorting
+                query = ApplySorting(query, sort);
+                
+                // Include related entities
+                query = query.Include(b => b.Category)
+                            .Include(b => b.BusinessFeatures)
+                            .Include(b => b.Reviews);
+                
+                // Apply pagination
+                var businesses = query.Skip((pageNumber - 1) * size)
+                                     .Take(size)
+                                     .ToList();
+                
+                // Load all categories for filters
+                ViewBag.Categories = Dbcategory.GetAll().ToList();
+                ViewBag.CurrentPage = pageNumber;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.ItemsPerPage = size;
+                ViewBag.TotalItems = totalItems;
+                
+                // For AJAX requests, return partial view
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return PartialView("_BusinessesPartial", businesses);
+                }
+                
+                return View("GetAll", businesses);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetAll: {ex.Message}");
+                
+                // Return empty results rather than error
+                ViewBag.Categories = Dbcategory.GetAll().ToList();
+                ViewBag.CurrentPage = 1;
+                ViewBag.TotalPages = 1;
+                ViewBag.ItemsPerPage = size;
+                ViewBag.TotalItems = 0;
+                
+                return View("GetAll", new List<Business>());
+            }
         }
 
+        private IQueryable<Business> ApplySorting(IQueryable<Business> query, string sort)
+        {
+            switch (sort)
+            {
+                case "nameDesc":
+                    return query.OrderByDescending(b => b.Name);
+                case "ratingDesc":
+                    return query.OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0);
+                case "ratingAsc":
+                    return query.OrderBy(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0);
+                case "newest":
+                    return query.OrderByDescending(b => b.Id); // Assuming Id correlates with creation time
+                case "oldest":
+                    return query.OrderBy(b => b.Id);
+                case "nameAsc":
+                default:
+                    return query.OrderBy(b => b.Name);
+            }
+        }
+
+        [Authorize (Roles ="User")]
         public IActionResult Add()
         {
             BusinessViewModel business = new BusinessViewModel();
@@ -80,162 +187,195 @@ namespace mvc.Controllers
             return View("Add", business);
         }
 
-        [HttpPost]
         public async Task<IActionResult> Save(BusinessViewModel busFromReq)
+{
+    try
+    {
+        // Check if user is logged in
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            ModelState.AddModelError("", "You must be logged in to add a business");
+            busFromReq.categories = Dbcategory.GetAll().ToList();
+            busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
+            TempData["Error"] = "You must be logged in to add a business";
+            return View("Add", busFromReq);
+        }
+
+        if (ModelState.IsValid)
+        {
+            // التحقق من عدم تكرار اسم العمل
+            bool isExist = await DbBusiness.IsBusinessExistAsync(busFromReq.Name);
+            if (isExist)
+            {
+                busFromReq.categories = Dbcategory.GetAll().ToList();
+                busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
+                ModelState.AddModelError("Name", "This name is already in use");
+                TempData["Error"] = "Business name is already in use";
+                return View("Add", busFromReq);
+            }
+
+            // استخدام معاملة قاعدة بيانات واحدة لضمان تكامل العملية
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // تعيين باقة Regular المجانية افتراضيًا
+                    int defaultPackageId = 1; // باقة Regular المجانية
+
+                    Console.WriteLine($"Saving new business: {busFromReq.Name}, Category: {busFromReq.CategoryId}, Owner: {userId}");
+
+                    // إنشاء كائن العمل التجاري
+                    Business NewBusiness = new Business
+                    {
+                        Name = busFromReq.Name,
+                        Longitude = busFromReq.Longitude,
+                        Latitude = busFromReq.Latitude,
+                        CategoryId = busFromReq.CategoryId,
+                        Description = busFromReq.Description,
+                        MainImage = busFromReq.MainImage,
+                        Address = busFromReq.Address,
+                        OwnerId = userId,
+                        SubscriptionEndDate = DateTime.UtcNow.AddMonths(1),
+                        IsActive = true,
+                        PackageId = defaultPackageId,
+                        BusinessType = BusinessType.Regular
+                    };
+
+                    // حفظ العمل التجاري
+                    await DbBusiness.AddAsync(NewBusiness);
+                    int saveResult = await DbBusiness.SaveAsync();
+                    if (saveResult <= 0)
+                    {
+                        throw new Exception("Failed to save business record to database");
+                    }
+                    
+                    Console.WriteLine($"Business saved successfully with result: {saveResult}");
+
+                    // الحصول على معرف العمل المضاف
+                    int newBusinessId = DbBusiness.getIdByName(NewBusiness.Name);
+                    if (newBusinessId <= 0)
+                    {
+                        throw new Exception("Retrieved ID is invalid");
+                    }
+                    Console.WriteLine($"Retrieved business ID: {newBusinessId}");
+
+                    // معالجة ميزات العمل التجاري
+                    if (busFromReq.BusinessFeatures != null && busFromReq.BusinessFeatures.Any())
+                    {
+                        int featuresAdded = 0;
+                        Console.WriteLine($"Processing {busFromReq.BusinessFeatures.Count} business features");
+                        
+                        foreach (var feature in busFromReq.BusinessFeatures)
+                        {
+                            if (!string.IsNullOrWhiteSpace(feature.Name))
+                            {
+                                feature.BusinessId = newBusinessId;
+                                await DbBusinessFeatures.AddAsync(feature);
+                                featuresAdded++;
+                            }
+                        }
+
+                        if (featuresAdded > 0)
+                        {
+                            int featuresSaveResult = await DbBusinessFeatures.SaveAsync();
+                            Console.WriteLine($"Saved {featuresAdded} features with result: {featuresSaveResult}");
+                        }
+                    }
+
+                    // معالجة ساعات العمل
+                    var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
+                    if (openingHourRepository == null)
+                    {
+                        // Log the error
+                        Console.WriteLine("Error: Could not resolve IOpeningHourRepository");
+                        // Handle the missing service appropriately - either throw an exception or continue without it
+                    } 
+                    else 
+                    {
+                        // Use the service
+                        if (busFromReq.OpeningHours != null && busFromReq.OpeningHours.Any())
+                        {
+                            Console.WriteLine($"Processing {busFromReq.OpeningHours.Count} business hours records");
+                            
+                            int hoursAdded = 0;
+                            
+                            foreach (var hour in busFromReq.OpeningHours)
+                            {
+                                hour.BusinessId = newBusinessId;
+                                await openingHourRepository.AddAsync(hour);
+                                hoursAdded++;
+                            }
+
+                            if (hoursAdded > 0)
+                            {
+                                await openingHourRepository.SaveAsync();
+                                Console.WriteLine($"Saved {hoursAdded} business hours records");
+                            }
+                        }
+                    }
+
+                    await transaction.CommitAsync();
+                    TempData["Success"] = "Business has been created successfully!";
+                    return RedirectToAction("GetBusinessByUserId", new { id = userId });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Transaction rolled back: {ex.Message}");
+                    TempData["Error"] = "Failed to save business. Please try again.";
+                    throw; // إعادة رمي الاستثناء للتعامل معه في كتلة catch الخارجية
+                }
+            }
+        }
+        else
+        {
+            TempData["Error"] = "Please correct the errors in the form.";
+        }
+    }
+    catch (Exception ex)
+    {
+        // Log error
+        Console.WriteLine($"Error saving business: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+        }
+        ModelState.AddModelError("", "An error occurred while saving the business. Please try again.");
+        TempData["Error"] = "An error occurred: " + ex.Message;
+    }
+
+    // إعادة تحميل البيانات المطلوبة للنموذج في حالة الخطأ
+    busFromReq.categories = Dbcategory.GetAll().ToList();
+    busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
+    return View("Add", busFromReq);
+}
+
+        // Add this new method to get category features
+        [HttpGet]
+        public async Task<IActionResult> GetCategoryFeatures(int categoryId)
         {
             try
             {
-                // التأكد من تسجيل دخول المستخدم
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
+                var category = await Dbcategory.GetByIdAsync(categoryId);
+                if (category == null)
                 {
-                    ModelState.AddModelError("", "يجب تسجيل الدخول لإضافة عمل تجاري");
-                    busFromReq.categories = Dbcategory.GetAll().ToList();
-                    busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
-                    return View("Add", busFromReq);
+                    return NotFound();
                 }
 
-                if (ModelState.IsValid)
-                {
-                    // التحقق من عدم تكرار اسم العمل
-                    bool isExist = await DbBusiness.IsBusinessExistAsync(busFromReq.Name);
-                    if (isExist)
-                    {
-                        busFromReq.categories = Dbcategory.GetAll().ToList();
-                        busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
-                        ModelState.AddModelError("Name", "This name is already in use");                    
-                        return View("Add", busFromReq);
-                    }
+                // Fixed anonymous type issue by explicitly returning empty list of same type
+                var features = category.CategoryFeatures != null && category.CategoryFeatures.Any() 
+                    ? category.CategoryFeatures.Select(f => new { id = f.Id, name = f.Name }).ToList() 
+                    : new List<object>().Select(o => new { id = 0, name = "" }).ToList();
 
-                    // استخدام معاملة قاعدة بيانات واحدة لضمان تكامل العملية
-                    using (var transaction = _context.Database.BeginTransaction())
-                    {
-                        try
-                        {
-                            // تعيين باقة Regular المجانية افتراضيًا
-                            int defaultPackageId = 1; // باقة Regular المجانية
-
-                            Console.WriteLine($"Saving new business: {busFromReq.Name}, Category: {busFromReq.CategoryId}, Owner: {userId}");
-
-                            // إنشاء كائن العمل التجاري
-                            Business NewBusiness = new Business
-                            {
-                                Name = busFromReq.Name,
-                                Longitude = busFromReq.Longitude,
-                                Latitude = busFromReq.Latitude,
-                                CategoryId = busFromReq.CategoryId,
-                                Description = busFromReq.Description,
-                                MainImage = busFromReq.MainImage,
-                                Address = busFromReq.Address,
-                                OwnerId = userId,
-                                SubscriptionEndDate = DateTime.UtcNow.AddMonths(1),
-                                IsActive = true,
-                                PackageId = defaultPackageId,
-                                BusinessType = BusinessType.Regular
-                            };
-
-                            // حفظ العمل التجاري
-                            await DbBusiness.AddAsync(NewBusiness);
-                            int saveResult = await DbBusiness.SaveAsync();
-                            if (saveResult <= 0)
-                            {
-                                throw new Exception("Failed to save business record to database");
-                            }
-                            
-                            Console.WriteLine($"Business saved successfully with result: {saveResult}");
-
-                            // الحصول على معرف العمل المضاف
-                            int newBusinessId = DbBusiness.getIdByName(NewBusiness.Name);
-                            if (newBusinessId <= 0)
-                            {
-                                throw new Exception("Retrieved ID is invalid");
-                            }
-                            Console.WriteLine($"Retrieved business ID: {newBusinessId}");
-
-                            // معالجة ميزات العمل التجاري
-                            if (busFromReq.BusinessFeatures != null && busFromReq.BusinessFeatures.Any())
-                            {
-                                int featuresAdded = 0;
-                                Console.WriteLine($"Processing {busFromReq.BusinessFeatures.Count} business features");
-                                
-                                foreach (var feature in busFromReq.BusinessFeatures)
-                                {
-                                    if (!string.IsNullOrWhiteSpace(feature.Name))
-                                    {
-                                        feature.BusinessId = newBusinessId;
-                                        await DbBusinessFeatures.AddAsync(feature);
-                                        featuresAdded++;
-                                    }
-                                }
-
-                                if (featuresAdded > 0)
-                                {
-                                    int featuresSaveResult = await DbBusinessFeatures.SaveAsync();
-                                    Console.WriteLine($"Saved {featuresAdded} features with result: {featuresSaveResult}");
-                                }
-                            }
-
-                            // معالجة ساعات العمل
-                            var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
-                            if (openingHourRepository == null)
-                            {
-                                // Log the error
-                                Console.WriteLine("Error: Could not resolve IOpeningHourRepository");
-                                // Handle the missing service appropriately - either throw an exception or continue without it
-                            } 
-                            else 
-                            {
-                                // Use the service
-                                if (busFromReq.OpeningHours != null && busFromReq.OpeningHours.Any())
-                                {
-                                    Console.WriteLine($"Processing {busFromReq.OpeningHours.Count} business hours records");
-                                    
-                                    int hoursAdded = 0;
-                                    
-                                    foreach (var hour in busFromReq.OpeningHours)
-                                    {
-                                        hour.BusinessId = newBusinessId;
-                                        await openingHourRepository.AddAsync(hour);
-                                        hoursAdded++;
-                                    }
-
-                                    if (hoursAdded > 0)
-                                    {
-                                        await openingHourRepository.SaveAsync();
-                                        Console.WriteLine($"Saved {hoursAdded} business hours records");
-                                    }
-                                }
-                            }
-
-                            await transaction.CommitAsync();
-                            TempData["Success"] = "تم إنشاء العمل التجاري بنجاح!";
-                            return RedirectToAction("GetAll");
-                        }
-                        catch (Exception ex)
-                        {
-                            await transaction.RollbackAsync();
-                            Console.WriteLine($"Transaction rolled back: {ex.Message}");
-                            throw; // إعادة رمي الاستثناء للتعامل معه في كتلة catch الخارجية
-                        }
-                    }
-                }
+                return Json(features);
             }
             catch (Exception ex)
             {
-                // تسجيل الخطأ
-                Console.WriteLine($"Error saving business: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-                }
-                ModelState.AddModelError("", "حدث خطأ أثناء حفظ بيانات العمل التجاري. يرجى المحاولة مرة أخرى.");
+                Console.WriteLine($"Error fetching category features: {ex.Message}");
+                return StatusCode(500, "Failed to load category features");
             }
-
-            // إعادة تحميل البيانات المطلوبة للنموذج في حالة الخطأ
-            busFromReq.categories = Dbcategory.GetAll().ToList();
-            busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
-            return View("Add", busFromReq);
         }
 
         public async Task<IActionResult> Delete(int id)
@@ -308,54 +448,60 @@ namespace mvc.Controllers
 
             try
             {
-                // التحقق من تكرار الاسم
+                // التحقق من اسم نشاط تجاري مكرر
                 var nameExists = await DbBusiness.GetAll()
                     .AnyAsync(b => b.Id != busFromReq.Id && b.Name == busFromReq.Name);
 
                 if (nameExists)
                 {
-                    ModelState.AddModelError("Name", "هذا الاسم مستخدم بالفعل");
+                    ModelState.AddModelError("Name", "This name is already in use");
                     await ReloadBusinessData(busFromReq);
                     return View("Edit", busFromReq);
                 }
 
-                // جلب وتحديث البيانات الأساسية
-                var businessToUpdate = await DbBusiness.GetByIdAsync(busFromReq.Id);
-                if (businessToUpdate == null) return NotFound("العمل التجاري غير موجود");
+                // الحصول على بيانات العمل الحالية
+                var businessToUpdate = await _context.Businesses.FindAsync(busFromReq.Id);
+                if (businessToUpdate == null) 
+                {
+                    TempData["Error"] = "Business not found";
+                    return NotFound("Business not found");
+                }
 
                 // التحقق من الملكية
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (businessToUpdate.OwnerId != currentUserId && !User.IsInRole("Admin"))
+                if (!businessToUpdate.OwnerId.Equals(currentUserId) && !User.IsInRole("Admin"))
                 {
-                    return Forbid("لا يمكنك تعديل عمل تجاري لا تملكه");
+                    TempData["Error"] = "You don't have permission to edit this business";
+                    return Forbid("You don't have permission to edit this business");
                 }
 
-                // تحديث الخصائص
+                // التأكد من أن الإحداثيات لها قيم صحيحة
+                if (string.IsNullOrEmpty(busFromReq.Latitude))
+                {
+                    busFromReq.Latitude = "0"; // قيمة افتراضية
+                }
+                    
+                if (string.IsNullOrEmpty(busFromReq.Longitude))
+                {
+                    busFromReq.Longitude = "0"; // قيمة افتراضية
+                }
+
+                // Update properties
                 businessToUpdate.Name = busFromReq.Name;
                 businessToUpdate.Longitude = busFromReq.Longitude;
-                businessToUpdate.Latitude = busFromReq.Latitude;
-                businessToUpdate.CategoryId = busFromReq.CategoryId;
-                businessToUpdate.Description = busFromReq.Description;
-                businessToUpdate.MainImage = busFromReq.MainImage;
-                businessToUpdate.Address = busFromReq.Address;
-                businessToUpdate.IsActive = busFromReq.IsActive;
-
-                // تحديث الميزات
-                await UpdateBusinessFeatures(busFromReq);
-
-                // تعديل طريقة تحديث ساعات العمل لتجنب transaction جديد
                 await UpdateOpeningHoursWithoutTransaction(busFromReq.Id, busFromReq.OpeningHours);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["Success"] = "تم تحديث العمل التجاري بنجاح";
-                return RedirectToAction("GetAll");
+                TempData["Success"] = "Business has been updated successfully";
+                // Fix redirect to use GetBusinessByUserId instead of myBusiness
+                return RedirectToAction("GetBusinessByUserId", new { id = currentUserId });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                ModelState.AddModelError("", $"حدث خطأ: {ex.Message}");
+                ModelState.AddModelError("", $"Error: {ex.Message}");
                 await ReloadBusinessData(busFromReq);
                 return View("Edit", busFromReq);
             }
@@ -403,19 +549,38 @@ namespace mvc.Controllers
                 await DbBusinessFeatures.AddAsync(feature);
             }
         }
-        public IActionResult GetBusinessByUserId(string id)
+
+        public IActionResult GetBusinessByUserId(string id, int page = 1, int pageSize = 12)
         {
             try
             {
                 if (string.IsNullOrEmpty(id))
                 {
-                    return BadRequest("معرف المستخدم مطلوب");
+                    return BadRequest("User ID is required");
                 }
                 
-                List<Business> businesses = DbBusiness.GetAll().Where(b => b.OwnerId == id).ToList();
-                if (businesses.Count == 0)
+                // Load all categories for the filter dropdown
+                ViewBag.Categories = Dbcategory.GetAll().ToList();
+                
+                // Get total count for pagination
+                int totalItems = DbBusiness.GetAll().Count(b => b.OwnerId == id);
+                int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                
+                // Get paginated results
+                List<Business> businesses = DbBusiness.GetAll()
+                    .Where(b => b.OwnerId == id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+                
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.ItemsPerPage = pageSize;
+                
+                if (businesses.Count == 0 && page == 1)
                 {
-                    return Content("لا توجد أعمال تجارية لهذا المستخدم");
+                    // No businesses found, but still show the page
+                    return View("myBusiness", new List<Business>());
                 }
                 
                 return View("myBusiness", businesses);
@@ -423,33 +588,153 @@ namespace mvc.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching user businesses: {ex.Message}");
-                return StatusCode(500, "حدث خطأ أثناء استرجاع الأعمال التجارية");
+                return StatusCode(500, "An error occurred while retrieving businesses");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetBusinessByUserIdPaged(string id, int page = 1, string searchTerm = "", string status = "all", string package = "all", string category = "all", int pageSize = 12)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return BadRequest("User ID is required");
+                }
+                
+                // Load all categories for the filter dropdown if it's not an AJAX request
+                if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+                {
+                    ViewBag.Categories = Dbcategory.GetAll().ToList();
+                }
+                
+                // Get all businesses for the user first
+                var allBusinesses = DbBusiness.GetAll().Where(b => b.OwnerId == id);
+                
+                // Apply filters
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    searchTerm = searchTerm.ToLower();
+                    allBusinesses = allBusinesses.Where(b => 
+                        b.Name.ToLower().Contains(searchTerm) || 
+                        (b.Category != null && b.Category.Name.ToLower().Contains(searchTerm)) ||
+                        (b.Description != null && b.Description.ToLower().Contains(searchTerm)));
+                }
+                
+                if (status != "all")
+                {
+                    bool isActive = status == "active";
+                    allBusinesses = allBusinesses.Where(b => b.IsActive == isActive);
+                }
+                
+                if (package != "all")
+                {
+                    int packageId = package == "regular" ? 1 : package == "premium" ? 2 : 3;
+                    allBusinesses = allBusinesses.Where(b => b.PackageId == packageId);
+                }
+                
+                // Add category filter
+                if (category != "all" && int.TryParse(category, out int categoryId))
+                {
+                    allBusinesses = allBusinesses.Where(b => b.CategoryId == categoryId);
+                }
+                
+                // Calculate pagination
+                int totalItems = allBusinesses.Count();
+                int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                
+                // Get paginated results
+                var pagedBusinesses = allBusinesses
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+                
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.ItemsPerPage = pageSize;
+                
+                // If it's an AJAX request, return partial view
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return PartialView("_BusinessGrid", pagedBusinesses);
+                }
+                
+                return View("myBusiness", pagedBusinesses);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching paginated businesses: {ex.Message}");
+                return StatusCode(500, "An error occurred while retrieving businesses");
             }
         }
 
         public async Task<IActionResult> GetBusinessById(int id)
         {
-            try
-            {
-                if (id <= 0)
-                {
-                    return BadRequest("معرف العمل التجاري غير صحيح");
-                }
-                
-                Business business = await DbBusiness.GetByIdAsync(id);
-                if (business == null)
-                {
-                    return NotFound("لم يتم العثور على العمل التجاري");
-                }
-                
-                return View(business);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching business: {ex.Message}");
-                return StatusCode(500, "حدث خطأ أثناء استرجاع العمل التجاري");
-            }
+    try
+    {
+        if (id <= 0)
+        {
+            return BadRequest("Invalid business ID");
         }
+         
+        // Get the business directly from context to ensure we get all properties including Longitude and Latitude
+        Business business = await _context.Businesses
+            .Include(b => b.Category)
+            .Include(b => b.Owner)
+            .Include(b => b.Reviews)
+            .FirstOrDefaultAsync(b => b.Id == id);
+            
+        if (business == null)
+        {
+            return NotFound("Business not found");
+        }
+         
+        // Get current user ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+         
+        // Set the owner status
+        ViewBag.IsOwner = !string.IsNullOrEmpty(userId) && userId == business.OwnerId;
+         
+        // Make sure business features are loaded
+        business.BusinessFeatures = await DbBusinessFeatures.GetAll(b => b.BusinessId == business.Id).ToListAsync();
+        
+        // Get reviews for this business
+        var reviewRepository = HttpContext.RequestServices.GetService<IReviewRepository>();
+        if (reviewRepository != null)
+        {
+            var reviews = await reviewRepository.GetByBusinessIdAsync(id);
+             
+            // Calculate average rating
+            double averageRating = business.GetAverageRating();
+             
+            // Calculate rating percentages
+            var ratingPercentages = business.GetRatingPercentages();
+             
+            ViewBag.AverageRating = averageRating;
+            ViewBag.RatingPercentages = ratingPercentages;
+        }
+
+        // Get opening hours
+        business.OpeningHours = await openingHourRepository.GetAll(o => o.BusinessId == business.Id).ToListAsync();
+        
+        // Get owner businesses count
+        var ownerBusinessCount = await DbBusiness.GetAll(b => b.OwnerId == business.OwnerId).CountAsync();
+        ViewBag.OwnerBusinessCount = ownerBusinessCount;
+
+        // Set the business ID for review form
+        ViewBag.BusinessId = id;
+        
+        // Make sure we have Longitude and Latitude from the database
+        Console.WriteLine($"Business coordinates: Lat={business.Latitude}, Long={business.Longitude}");
+         
+        return View(business);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error fetching business: {ex.Message}");
+        return StatusCode(500, "An error occurred while retrieving the business");
+    }
+}
 
         [HttpGet]
         public IActionResult GetUserBusinessIds()
@@ -459,7 +744,7 @@ namespace mvc.Controllers
                 string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Json(new { success = false, message = "المستخدم غير مسجل الدخول", data = new int[0] });
+                    return Json(new { success = false, message = "User is not logged in", data = new int[0] });
                 }
                 
                 var businessIds = DbBusiness.GetAll()
@@ -472,7 +757,7 @@ namespace mvc.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching user business IDs: {ex.Message}");
-                return Json(new { success = false, message = "حدث خطأ أثناء استرجاع معرفات الأعمال التجارية", data = new int[0] });
+                return Json(new { success = false, message = "An error occurred while retrieving business IDs", data = new int[0] });
             }
         }
 
@@ -499,7 +784,7 @@ namespace mvc.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error searching businesses: {ex.Message}");
-                TempData["Error"] = "حدث خطأ أثناء البحث عن الأعمال التجارية";
+                TempData["Error"] = "An error occurred while searching for businesses";
                 return RedirectToAction("GetAll");
             }
         }

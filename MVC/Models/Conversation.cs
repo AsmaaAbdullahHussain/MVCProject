@@ -7,25 +7,22 @@ namespace mvc.Models
     public class Conversation
     {
         [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; } // المستخدم العادي (مطلوب)
+        public string UserId { get; set; }
 
-        public string? AdminId { get; set; } // الأدمن الذي يرد (يظل null في الرسائل العامة)
+        public string? AdminId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastMessageAt { get; set; }
         public bool IsClosed { get; set; } = false;
 
-        // هل هذه المحادثة رسالة عامة لكل الأدمنز؟
         public bool IsAdminBroadcast { get; set; } = false;
 
-        // تتبع حالة الرسالة
-        public bool IsReadByAdmin { get; set; } = false; // إضافة جديدة
-        public bool IsReadByUser { get; set; } = false; // إضافة جديدة
+        public bool IsReadByAdmin { get; set; } = false;
+        public bool IsReadByUser { get; set; } = false;
 
-        // Navigation properties
         [ForeignKey("UserId")]
         public virtual ApplicationUser User { get; set; }
 

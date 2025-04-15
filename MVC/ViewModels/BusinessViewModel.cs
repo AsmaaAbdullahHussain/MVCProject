@@ -26,10 +26,10 @@ namespace mvc.ViewModels
         public string MainImage { get; set; }
 
         [Required(ErrorMessage = "Latitude is required")]
-        public string Latitude { get; set; }
+        public string Latitude { get; set; } = "0";
 
         [Required(ErrorMessage = "Longitude is required")]
-        public string Longitude { get; set; }
+        public string Longitude { get; set; } = "0";
 
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }

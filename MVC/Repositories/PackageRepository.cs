@@ -1,6 +1,6 @@
 ﻿using mvc.Models;
 using mvc.RepoInterfaces;
-using MVC.Models;
+using mvc.Models;
 using Polly;
 
 namespace mvc.Repositories

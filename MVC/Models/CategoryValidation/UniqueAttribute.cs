@@ -1,5 +1,5 @@
 ﻿using mvc.ViewModels;
-using MVC.Models;
+using mvc.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace mvc.Models.CategoryValidation

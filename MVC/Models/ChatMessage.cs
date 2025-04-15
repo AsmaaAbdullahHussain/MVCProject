@@ -8,27 +8,21 @@ namespace mvc.Models
     {
         [Key]
         public int Id { get; set; }
-        
+
+        [Required]
+        public int ConversationId { get; set; }
+
+        [ForeignKey("ConversationId")]
+        public virtual Conversation Conversation { get; set; }
+
+        [Required]
+        public string SenderId { get; set; }
+
         [Required]
         public string Content { get; set; }
-        
-        [Required]
-        public string UserId { get; set; }
-        
-        // Adding SenderId property that was missing
-        public string SenderId { get; set; }
-        
-        public string SenderName { get; set; }
-        
-        public string RecipientId { get; set; }
-        
-        // Adding ConversationId property that was missing
-        public string ConversationId { get; set; }
-        
-        public bool IsFromAdmin { get; set; }
-        
-        public bool IsRead { get; set; }
-        
+
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsRead { get; set; } = false;
     }
 }

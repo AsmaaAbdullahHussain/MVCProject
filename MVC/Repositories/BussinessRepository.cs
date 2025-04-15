@@ -2,7 +2,7 @@
 using mvc.Enums;
 using mvc.Models;
 using mvc.RepoInterfaces;
-using MVC.Models;
+using mvc.Models;
 
 namespace mvc.Repositories
 {
@@ -31,6 +31,21 @@ namespace mvc.Repositories
         {
             return await _context.Businesses.AnyAsync(b => b.Name == name);
         }
+
+        public async Task<bool> IsBusinessExistByIdAsync(int id)
+        {
+            return await dbSet.AnyAsync(b => b.Id == id);
+        }
+
+        public async Task<Category> GetCategoryByBusinessIdAsync(int businessId)
+{
+    var business = await _context.Businesses
+        .Include(b => b.Category)
+        .FirstOrDefaultAsync(b => b.Id == businessId);
+    
+    return business?.Category;
+}
+
 
     }
 }

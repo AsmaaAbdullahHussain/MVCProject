@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using mvc.Models;
 using mvc.RepoInterfaces;
-using MVC.Models;
+using mvc.Models;
 using System.Linq;
 using System.Threading.Tasks;
 

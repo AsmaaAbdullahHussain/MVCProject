@@ -1,9 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace mvc.Models.Authorize
 {
-    public class ApplicationUser:IdentityUser //by default <string> 
+    public class ApplicationUser : IdentityUser
     {
+        [Required]
         public string Address { get; set; }
+        
+        // Añadimos la propiedad RegisterDate
+        public DateTime RegisterDate { get; set; } = DateTime.UtcNow;
     }
 }

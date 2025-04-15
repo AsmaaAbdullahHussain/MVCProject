@@ -85,12 +85,12 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label asp-for="Latitude" class="form-label">Latitude</label>
-                                        <input asp-for="Latitude" class="form-control" id="latitude-input" />
+                                        <input asp-for="Latitude" class="form-control" id="latitude-input" value="@Model.Latitude" />
                                         <span asp-validation-for="Latitude" class="text-danger"></span>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label asp-for="Longitude" class="form-label">Longitude</label>
-                                        <input asp-for="Longitude" class="form-control" id="longitude-input" />
+                                        <input asp-for="Longitude" class="form-control" id="longitude-input"  value="@Model.Longitude" />
                                         <span asp-validation-for="Longitude" class="text-danger"></span>
                                     </div>
                                 </div>
@@ -102,7 +102,7 @@
                         </div>
                     </div>
                 </div>
-                
+     
                 <!-- Features Section -->
                 <div class="card mb-3">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">

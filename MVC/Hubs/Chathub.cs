@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using mvc.Models.Authorize;
 using Microsoft.AspNetCore.Identity;
@@ -7,18 +8,17 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using MVC.Models;
-using MVC.ViewModels;
 using mvc.ViewModels;
 
 namespace mvc.Hubs
 {
-    public class Chathub : Hub
+    [Authorize]
+    public class ChatHub : Hub
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ProjectContext _context;
 
-        public Chathub(
+        public ChatHub(
             UserManager<ApplicationUser> userManager,
             ProjectContext context)
         {
@@ -26,10 +26,8 @@ namespace mvc.Hubs
             _context = context;
         }
 
-
-        // الحصول على محادثات الأدمن مع تحسين الأداء
+       
         public async Task<List<AdminConversationViewModel>> GetAdminConversations()
-
         {
             var currentUserId = Context.UserIdentifier;
             var user = await _userManager.FindByIdAsync(currentUserId);
@@ -51,17 +49,16 @@ namespace mvc.Hubs
                     LastMessageAt = c.LastMessageAt ?? c.CreatedAt,
                     UnreadCount = c.Messages.Count(m => !m.IsRead && m.SenderId != currentUserId)
                 })
-              
                 .ToListAsync();
         }
 
-
+       
         public async Task<List<UserConversationDto>> GetUserConversations()
         {
             var currentUserId = Context.UserIdentifier;
-            var user = await _userManager.FindByIdAsync(currentUserId);
-
-            if (user == null) return new List<UserConversationDto>();
+            
+            if (string.IsNullOrEmpty(currentUserId))
+                return new List<UserConversationDto>();
 
             return await _context.Conversations
                 .Where(c => c.UserId == currentUserId)
@@ -77,47 +74,47 @@ namespace mvc.Hubs
                     LastMessageAt = c.LastMessageAt ?? c.CreatedAt,
                     UnreadCount = c.Messages
                                  .Count(m => !m.IsRead &&
-                                           m.SenderId != currentUserId &&
-                                           m.SenderId == c.AdminId)
+                                           m.SenderId != currentUserId)
                 })
-              
                 .ToListAsync();
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public async Task<List<ChatMessageViewModel>> GetConversationMessages(string conversationId)
+      
+        public async Task<List<ChatMessageViewModel>> GetConversationMessages(int conversationId)
         {
-            var currentUser = await _userManager.GetUserAsync(Context.User);
-            if (currentUser == null) return new List<ChatMessageViewModel>();
+            var currentUserId = Context.UserIdentifier;
+            
+            if (string.IsNullOrEmpty(currentUserId))
+                return new List<ChatMessageViewModel>();
 
-            var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
-            var hasAccess = await _context.Conversations
-                .AnyAsync(c => c.Id == conversationId &&
-                    (c.UserId == currentUser.Id || c.AdminId == currentUser.Id || isAdmin));
+            var isAdmin = await IsCurrentUserAdmin();
+                
+            
+            var conversation = await _context.Conversations
+                .FirstOrDefaultAsync(c => c.Id == conversationId);
+                
+            if (conversation == null || 
+                (!isAdmin && conversation.UserId != currentUserId && conversation.AdminId != currentUserId))
+            {
+                return new List<ChatMessageViewModel>();
+            }
 
-            if (!hasAccess) return new List<ChatMessageViewModel>();
+           
+            var unreadMessages = await _context.ChatMessages
+                .Where(m => m.ConversationId == conversationId &&
+                          !m.IsRead &&
+                          m.SenderId != currentUserId)
+                .ToListAsync();
 
-            // تحديث حالة الرسائل كمقروءة
-            //var unreadMessages = await _context.ChatMessages
-            //    .Where(m => m.ConversationId == conversationId &&
-            //               !m.IsRead &&
-            //               m.SenderId != currentUser.Id)
-            //    .ToListAsync();
-
-            //unreadMessages.ForEach(m => m.IsRead = true);
-            await _context.SaveChangesAsync();
+            foreach (var message in unreadMessages)
+            {
+                message.IsRead = true;
+            }
+            
+            if (unreadMessages.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
 
             return await _context.ChatMessages
                 .Where(m => m.ConversationId == conversationId)
@@ -127,23 +124,69 @@ namespace mvc.Hubs
                     Id = m.Id,
                     Content = m.Content,
                     SenderId = m.SenderId,
-                 
                     SentAt = m.SentAt,
                     IsRead = m.IsRead
                 })
-           //     .AsNoTracking()
                 .ToListAsync();
         }
 
-        // إرسال رسالة من المستخدم إلى الأدمنز
+      
+        public async Task SendMessageToConversation(int conversationId, string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+            
+            var currentUserId = Context.UserIdentifier;
+            
+            if (string.IsNullOrEmpty(currentUserId)) return;
+            
+            var conversation = await _context.Conversations
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.Id == conversationId && c.UserId == currentUserId);
+                
+            if (conversation == null) return;
+            
+            var chatMessage = new ChatMessage
+            {
+                ConversationId = conversationId,
+                SenderId = currentUserId,
+                Content = message.Trim(),
+                SentAt = DateTime.UtcNow,
+                IsRead = false
+            };
+            
+            _context.ChatMessages.Add(chatMessage);
+            conversation.LastMessageAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            
+           
+            await Clients.Group("Admins").SendAsync("ReceiveAdminMessage", new
+            {
+                ConversationId = conversationId,
+                Message = message,
+                SenderId = currentUserId,
+                SenderName = conversation.User.UserName,
+                UserId = currentUserId,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+
+       
         public async Task SendToAdmins(string message)
         {
-            var user = await _userManager.GetUserAsync(Context.User);
-            if (user == null || string.IsNullOrWhiteSpace(message)) return;
+            if (string.IsNullOrWhiteSpace(message)) return;
+            
+            var currentUserId = Context.UserIdentifier;
+            
+            if (string.IsNullOrEmpty(currentUserId)) return;
+            
+            var user = await _userManager.FindByIdAsync(currentUserId);
+            
+            if (user == null) return;
 
+           
             var conversation = new Conversation
             {
-                UserId = user.Id,
+                UserId = currentUserId,
                 IsAdminBroadcast = true,
                 CreatedAt = DateTime.UtcNow,
                 LastMessageAt = DateTime.UtcNow
@@ -152,10 +195,11 @@ namespace mvc.Hubs
             _context.Conversations.Add(conversation);
             await _context.SaveChangesAsync();
 
+          
             var chatMessage = new ChatMessage
             {
                 ConversationId = conversation.Id,
-                SenderId = user.Id,
+                SenderId = currentUserId,
                 Content = message.Trim(),
                 SentAt = DateTime.UtcNow,
                 IsRead = false
@@ -164,24 +208,29 @@ namespace mvc.Hubs
             _context.ChatMessages.Add(chatMessage);
             await _context.SaveChangesAsync();
 
+            
             await Clients.Group("Admins").SendAsync("ReceiveAdminMessage", new
             {
                 ConversationId = conversation.Id,
                 Message = message,
-                SenderId = user.Id,
+                SenderId = currentUserId,
                 SenderName = user.UserName,
-                UserId = user.Id,
+                UserId = currentUserId,
                 Timestamp = DateTime.UtcNow
             });
         }
 
-        // إرسال رد من الأدمن إلى المستخدم مع تحسينات
-        public async Task SendReply(string conversationId, string message)
+        
+        public async Task SendReply(int conversationId, string message)
         {
-            var admin = await _userManager.GetUserAsync(Context.User);
-            if (admin == null || !await _userManager.IsInRoleAsync(admin, "Admin") ||
-                string.IsNullOrWhiteSpace(message))
-                return;
+            if (string.IsNullOrWhiteSpace(message)) return;
+            
+            var currentUserId = Context.UserIdentifier;
+            
+            if (string.IsNullOrEmpty(currentUserId)) return;
+            
+            
+            if (!await IsCurrentUserAdmin()) return;
 
             var conversation = await _context.Conversations
                 .Include(c => c.User)
@@ -189,10 +238,17 @@ namespace mvc.Hubs
 
             if (conversation == null) return;
 
+            
+            if (string.IsNullOrEmpty(conversation.AdminId))
+            {
+                conversation.AdminId = currentUserId;
+            }
+
+            
             var chatMessage = new ChatMessage
             {
                 ConversationId = conversationId,
-                SenderId = admin.Id,
+                SenderId = currentUserId,
                 Content = message.Trim(),
                 SentAt = DateTime.UtcNow,
                 IsRead = false
@@ -202,15 +258,17 @@ namespace mvc.Hubs
             conversation.LastMessageAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
+            
+            var adminUser = await _userManager.FindByIdAsync(currentUserId);
             await Clients.User(conversation.UserId).SendAsync("ReceiveReply", new
             {
                 Message = message,
-                AdminName = admin.UserName,
+                AdminName = adminUser?.UserName ?? "الدعم الفني",
                 Timestamp = DateTime.UtcNow,
                 ConversationId = conversationId
             });
 
-            // إعلام الأدمن الآخرين بالتحديث
+            
             await Clients.Group("Admins").SendAsync("UpdateAdminConversation", new
             {
                 ConversationId = conversationId,
@@ -218,48 +276,120 @@ namespace mvc.Hubs
                 UserName = conversation.User.UserName,
                 LastMessage = message,
                 LastMessageAt = DateTime.UtcNow,
-                AdminName = admin.UserName
+                AdminName = adminUser?.UserName ?? "الدعم الفني"
             });
         }
-        // إدارة اتصال المستخدمين
+        
+      
         public override async Task OnConnectedAsync()
         {
-            var user = await _userManager.GetUserAsync(Context.User);
-            if (user != null)
+            try
             {
-                if (await _userManager.IsInRoleAsync(user, "Admin"))
+                var user = await _userManager.GetUserAsync(Context.User);
+                if (user != null)
                 {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
-                    // إعلام الأدمن بالاتصال الجديد
-                    await Clients.Group("Admins").SendAsync("AdminConnected", user.UserName);
-                }
-                else
-                {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, "Users");
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
+                        await Clients.Group("Admins").SendAsync("AdminConnected", user.UserName);
+                    }
+                    else
+                    {
+                        await Groups.AddToGroupAsync(Context.ConnectionId, "Users");
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in OnConnectedAsync: {ex.Message}");
+            }
+            
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var user = await _userManager.GetUserAsync(Context.User);
-            if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+            try
             {
-                await Clients.Group("Admins").SendAsync("AdminDisconnected", user.UserName);
+                var user = await _userManager.GetUserAsync(Context.User);
+                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    await Clients.Group("Admins").SendAsync("AdminDisconnected", user.UserName);
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in OnDisconnectedAsync: {ex.Message}");
+            }
+            
             await base.OnDisconnectedAsync(exception);
+        }
+        
+    
+        private async Task<bool> IsCurrentUserAdmin()
+        {
+            var user = await _userManager.GetUserAsync(Context.User);
+            return user != null && await _userManager.IsInRoleAsync(user, "Admin");
+        }
+
+        /// <summary>
+        /// إرسال رسالة إلى مجموعة محددة (محادثة)
+        /// </summary>
+        public async Task SendMessage(int conversationId, string message)
+        {
+          
+
+            await Clients.Group($"conversation_{conversationId}").SendAsync("ReceiveMessage", new
+            {
+                ConversationId = conversationId,
+                Content = message,
+                Timestamp = DateTime.UtcNow,
+                SenderId = Context.UserIdentifier,
+                IsOutgoing = false 
+            });
+        }
+
+        /// <summary>
+        /// الانضمام إلى محادثة محددة لتلقي الإشعارات الخاصة بها
+        /// </summary>
+        public async Task JoinConversation(int conversationId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"conversation_{conversationId}");
+        }
+
+        /// <summary>
+        /// مغادرة محادثة محددة
+        /// </summary>
+        public async Task LeaveConversation(int conversationId)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conversation_{conversationId}");
+        }
+
+        /// <summary>
+        /// الانضمام إلى قناة المشرف لتلقي إشعارات جميع المحادثات
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        public async Task JoinAdminChannel()
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, "admin_channel");
+        }
+
+        /// <summary>
+        /// تحديث حالة المحادثة (مثل: تمت القراءة، مؤرشفة)
+        /// </summary>
+        public async Task UpdateConversationStatus(int conversationId, string status)
+        {
+           
+            await Clients.Group("admin_channel").SendAsync("ConversationUpdated", conversationId);
         }
     }
 
-
     public class UserConversationDto
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string AdminName { get; set; }
         public string LastMessage { get; set; }
         public DateTime LastMessageAt { get; set; }
         public int UnreadCount { get; set; }
     }
-
 }

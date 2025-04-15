@@ -65,7 +65,63 @@ namespace mvc.Models
         public ICollection<BusinessFeatures>? BusinessFeatures { get; set; }
         public ICollection<Checkout>? Checkout { get; set; }
 
-    }
+        // Add a method to calculate average rating
+        public double GetAverageRating()
+        {
+            if (Reviews == null || !Reviews.Any())
+                return 0;
+                
+            return Math.Round(Reviews.Average(r => r.Rating), 1);
+        }
 
-  
+        // Add a method to get rating distribution
+        public Dictionary<int, int> GetRatingDistribution()
+        {
+            var distribution = new Dictionary<int, int>();
+            
+            // Initialize all ratings (1-5) with zero count
+            for (int i = 1; i <= 5; i++)
+            {
+                distribution[i] = 0;
+            }
+            
+            if (Reviews == null || !Reviews.Any())
+                return distribution;
+                
+            // Count reviews for each rating
+            foreach (var review in Reviews)
+            {
+                distribution[review.Rating]++;
+            }
+            
+            return distribution;
+        }
+
+        // Add a method to calculate rating percentages
+        public Dictionary<int, int> GetRatingPercentages()
+        {
+            var distribution = GetRatingDistribution();
+            var percentages = new Dictionary<int, int>();
+            int total = Reviews?.Count() ?? 0;
+            
+            if (total == 0)
+            {
+                // Initialize all ratings with 0%
+                for (int i = 1; i <= 5; i++)
+                {
+                    percentages[i] = 0;
+                }
+            }
+            else
+            {
+                // Calculate percentage for each rating
+                for (int i = 1; i <= 5; i++)
+                {
+                    percentages[i] = (int)Math.Round((double)distribution[i] / total * 100);
+                }
+            }
+            
+            return percentages;
+        }
+    }
 }

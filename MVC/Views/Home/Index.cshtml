@@ -1,363 +1,1300 @@
-﻿@model List<Business>
+﻿@model List<mvc.Models.Business>
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Home - Vyrlo";
 }
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <style>
-    /* Hero Section Styles */
+    /* Advanced Hero Section with Dynamic Waves Effect */
     .hero-section {
-        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
-        background-size: cover;
-        background-position: center;
+        position: relative;
+        background: linear-gradient(135deg, #1a2980, #26d0ce);
         color: white;
-        padding: 100px 0;
-        margin-bottom: 50px;
-        border-radius: 0 0 20px 20px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 7rem 0 8rem;
+        margin-bottom: 0;
+        border-radius: 0;
+        overflow: hidden;
+        isolation: isolate;
     }
-
-    .hero-content {
-        max-width: 800px;
-        margin: 0 auto;
-        text-align: center;
-    }
-
-    .hero-title {
-        font-size: 3rem;
-        font-weight: 700;
-        margin-bottom: 20px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    .hero-subtitle {
-        font-size: 1.5rem;
-        margin-bottom: 30px;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-    }
-
-    .search-box {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .search-row {
-        margin-bottom: 15px;
-    }
-
-    .search-button {
-        background-color: #2c6eff;
-        color: white;
-        font-weight: 600;
-        padding: 12px 25px;
-        border-radius: 30px;
-        border: none;
-        transition: all 0.3s ease;
+    
+    /* Wave Animation Elements */
+    .wave {
+        position: absolute;
         width: 100%;
+        height: 100px;
+        bottom: 0;
+        left: 0;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none"><path fill="white" fill-opacity="1" d="M0,96L48,128C96,160,192,224,288,229.3C384,235,480,181,576,154.7C672,128,768,128,864,144C960,160,1056,192,1152,202.7C1248,213,1344,203,1392,197.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+        background-size: cover;
+        background-repeat: no-repeat;
     }
-
-    .search-button:hover {
-        background-color: #1b5ce0;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(27, 92, 224, 0.3);
+    
+    .wave-1 {
+        height: 80px;
+        animation: wave-animation-1 8s linear infinite alternate;
+        z-index: 5;
+        opacity: 1;
     }
-
-    .form-control, .select2-container--default .select2-selection--single {
-        height: 50px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        box-shadow: none;
+    
+    .wave-2 {
+        height: 90px;
+        opacity: 0.5;
+        animation: wave-animation-2 10s linear infinite alternate;
+        z-index: 4;
     }
-
-    .select2-container--default .select2-selection--single {
+    
+    .wave-3 {
+        height: 70px;
+        opacity: 0.2;
+        animation: wave-animation-3 12s linear infinite alternate;
+        z-index: 3;
+    }
+    
+    @keyframes wave-animation-1 {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(-50px);
+        }
+    }
+    
+    @keyframes wave-animation-2 {
+        0% {
+            transform: translateX(-50px);
+        }
+        100% {
+            transform: translateX(20px);
+        }
+    }
+    
+    @keyframes wave-animation-3 {
+        0% {
+            transform: translateX(-20px) scaleY(1.1);
+        }
+        100% {
+            transform: translateX(30px) scaleY(0.9);
+        }
+    }
+    
+    /* Floating Elements */
+    .floating-element {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(2px);
+        pointer-events: none;
+        z-index: 2;
+        box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+    
+    .floating-element:nth-child(1) {
+        width: 350px;
+        height: 350px;
+        top: -100px;
+        right: -50px;
+        animation: float1 25s infinite alternate ease-in-out;
+        background: radial-gradient(circle at 75% 30%, rgba(255, 255, 255, 0.2), transparent);
+    }
+    
+    .floating-element:nth-child(2) {
+        width: 250px;
+        height: 250px;
+        bottom: -50px;
+        left: 10%;
+        animation: float2 18s infinite alternate ease-in-out;
+        background: radial-gradient(circle at 25% 70%, rgba(255, 255, 255, 0.15), transparent);
+    }
+    
+    .floating-element:nth-child(3) {
+        width: 200px;
+        height: 200px;
+        top: 30%;
+        left: -75px;
+        animation: float3 15s infinite alternate ease-in-out;
+        background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1), transparent);
+    }
+    
+    .floating-element:nth-child(4) {
+        width: 120px;
+        height: 120px;
+        bottom: 35%;
+        right: 15%;
+        animation: float4 12s infinite alternate ease-in-out;
+        background: radial-gradient(circle at 60% 40%, rgba(255, 255, 255, 0.12), transparent);
+    }
+    
+    /* Multiple smaller floating particles */
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        background: white;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0;
+    }
+    
+    .p1 {
+        width: 6px;
+        height: 6px;
+        top: 20%;
+        left: 20%;
+        animation: particle1 4s ease-in infinite;
+    }
+    
+    .p2 {
+        width: 8px;
+        height: 8px;
+        top: 60%;
+        left: 70%;
+        animation: particle2 7s ease-in infinite;
+        animation-delay: 2s;
+    }
+    
+    .p3 {
+        width: 4px;
+        height: 4px;
+        top: 80%;
+        left: 30%;
+        animation: particle3 5s ease-in infinite;
+        animation-delay: 1s;
+    }
+    
+    .p4 {
+        width: 5px;
+        height: 5px;
+        top: 40%;
+        left: 80%;
+        animation: particle4 6s ease-in infinite;
+        animation-delay: 3s;
+    }
+    
+    .p5 {
+        width: 7px;
+        height: 7px;
+        top: 30%;
+        left: 50%;
+        animation: particle5 8s ease-in infinite;
+        animation-delay: 2.5s;
+    }
+    
+    @keyframes particle1 {
+        0% { transform: translateY(0); opacity: 0; }
+        20% { opacity: 0.8; }
+        100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+    }
+    
+    @keyframes particle2 {
+        0% { transform: translateY(0); opacity: 0; }
+        20% { opacity: 0.8; }
+        100% { transform: translateY(-150px) translateX(-30px); opacity: 0; }
+    }
+    
+    @keyframes particle3 {
+        0% { transform: translateY(0); opacity: 0; }
+        20% { opacity: 0.6; }
+        100% { transform: translateY(-80px) translateX(10px); opacity: 0; }
+    }
+    
+    @keyframes particle4 {
+        0% { transform: translateY(0); opacity: 0; }
+        20% { opacity: 0.7; }
+        100% { transform: translateY(-120px) translateX(-15px); opacity: 0; }
+    }
+    
+    @keyframes particle5 {
+        0% { transform: translateY(0); opacity: 0; }
+        20% { opacity: 0.8; }
+        100% { transform: translateY(-100px) translateX(25px); opacity: 0; }
+    }
+    
+    @keyframes float1 {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        100% { transform: translate(50px, 40px) rotate(10deg) scale(1.05); }
+    }
+    
+    @keyframes float2 {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        100% { transform: translate(-30px, -50px) rotate(-15deg) scale(0.95); }
+    }
+    
+    @keyframes float3 {
+        0% { transform: translate(0, 0) rotate(0deg) skew(0deg); }
+        100% { transform: translate(40px, 30px) rotate(8deg) skew(2deg); }
+    }
+    
+    @keyframes float4 {
+        0% { transform: translate(0, 0) rotate(0deg); filter: hue-rotate(0); }
+        100% { transform: translate(-20px, -30px) rotate(-20deg); filter: hue-rotate(30deg); }
+    }
+    
+    /* Hero content with enhanced animations */
+    .hero-content {
+        position: relative;
+        z-index: 10;
+        animation: heroAppear 1s cubic-bezier(0.26, 0.53, 0.74, 1.48);
+    }
+    
+    @keyframes heroAppear {
+        0% {
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .hero-content h1 {
+        font-size: 3.8rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(to right, #ffffff, #d0e7ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        position: relative;
+        display: inline-block;
+        animation: fadeInDown 1s ease-out forwards;
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .hero-content h1::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        width: 100px;
+        height: 5px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+        transform: translateX(-50%);
+        border-radius: 10px;
+        animation: lineExpand 1.5s ease-out forwards 0.5s;
+        opacity: 0;
+    }
+    
+    @keyframes lineExpand {
+        from {
+            width: 0;
+            opacity: 0;
+        }
+        to {
+            width: 100px;
+            opacity: 1;
+        }
+    }
+    
+    .hero-content p {
+        font-size: 1.3rem;
+        opacity: 0;
+        margin-bottom: 2.5rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        animation: fadeIn 1s ease-out 0.5s forwards;
+        letter-spacing: 0.3px;
+        line-height: 1.6;
+    }
+    
+    @keyframes fadeIn {
+        to {
+            opacity: 0.95;
+        }
+    }
+    
+    /* Enhanced Search Box with 3D effect and glow */
+    .hero-search {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        padding: 0.6rem;
+        max-width: 700px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 
+                    0 0 20px rgba(255, 255, 255, 0.2);
+        position: relative;
+        margin: 0 auto;
+        opacity: 0;
+        animation: searchAppear 1s ease-out 0.9s forwards;
+        transform-style: preserve-3d;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    
+    @keyframes searchAppear {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .hero-search::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, #26d0ce, transparent, #1a2980);
+        border-radius: 52px;
+        z-index: -1;
+        opacity: 0.5;
+        filter: blur(5px);
+        animation: glowPulse 3s linear infinite;
+    }
+    
+    @keyframes glowPulse {
+        0%, 100% {
+            opacity: 0.5;
+        }
+        50% {
+            opacity: 0.8;
+        }
+    }
+    
+    .hero-search input {
+        border: none;
+        border-radius: 50px;
+        padding-left: 1.5rem;
+        font-size: 1.1rem;
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .hero-search input:focus {
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(26, 41, 128, 0.3);
+    }
+    
+    .hero-search button {
+        background: linear-gradient(135deg, #1a2980, #26d0ce);
+        border: none;
+        border-radius: 50px;
+        color: white;
+        padding: 0.9rem 2rem;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(26, 41, 128, 0.4);
+        text-transform: uppercase;
+        font-size: 0.95rem;
+    }
+    
+    .hero-search button:hover {
+        background: linear-gradient(135deg, #26d0ce, #1a2980);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 20px rgba(26, 41, 128, 0.6);
+    }
+    
+    .hero-search button:active {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 10px rgba(26, 41, 128, 0.5);
+    }
+    
+    /* Enhanced search suggestions */
+    .search-suggestions {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.97);
+        border-radius: 15px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        margin-top: 8px;
+        z-index: 15;
+        max-height: 350px;
+        overflow-y: auto;
+        display: none;
+        border: 1px solid rgba(26, 41, 128, 0.1);
+        animation: suggestionsAppear 0.3s ease-out;
+        backdrop-filter: blur(5px);
+    }
+    
+    @keyframes suggestionsAppear {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .suggestion-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        cursor: pointer;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
     }
-
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 50px;
+    
+    .suggestion-item:hover {
+        background: rgba(26, 208, 206, 0.1);
+        padding-left: 2rem;
+    }
+    
+    .suggestion-icon {
+        margin-right: 15px;
+        color: #1a2980;
+        font-size: 1rem;
+        width: 35px;
+        height: 35px;
+        background-color: rgba(26, 41, 128, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .suggestion-item:hover .suggestion-icon {
+        background-color: rgba(26, 41, 128, 0.2);
+        transform: scale(1.1);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .hero-content h1 {
+            font-size: 3rem;
+        }
+        .hero-section {
+            padding: 6rem 0 7rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 5rem 0 6rem;
+        }
+        .hero-content h1 {
+            font-size: 2.4rem;
+        }
+        .hero-search button {
+            padding: 0.8rem 1.5rem;
+            font-size: 0.85rem;
+        }
+        .wave {
+            height: 60px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .hero-content h1 {
+            font-size: 2.1rem;
+        }
+        .hero-content p {
+            font-size: 1.05rem;
+        }
+        .hero-section {
+            padding: 4rem 0 5rem;
+        }
     }
 
-    /* Sponsored Section Styles */
-    .sponsored-section {
-        padding: 60px 0;
+    /* Category Slider Styles */
+    .categories-slider-section {
+        padding: 3rem 0;
+        position: relative;
+        padding-left: 15px;
+        padding-right: 15px;
+        max-width: 1320px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .categories-slider {
+        padding: 1rem 0;
+        overflow: hidden;
+    }
+
+    .swiper-container {
+        padding: 1rem;
+        margin: 0 -1rem;
+    }
+
+    .category-slide {
+        text-align: center;
+        padding: 2rem 1rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        transition: all 0.4s ease;
+        background-color: white;
+        cursor: pointer;
+        height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .category-slide:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-color: var(--primary-color);
+    }
+
+    .category-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+        width: 80px;
+        background-color: rgba(52, 152, 219, 0.1);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .category-slide:hover .category-icon {
+        background-color: var(--primary-color);
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .category-slide h5 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        color: var(--secondary-color);
+    }
+
+    .category-slide p {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .swiper-button-next, .swiper-button-prev {
+        color: var(--primary-color);
+        background-color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .swiper-button-next:after, .swiper-button-prev:after {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    .swiper-pagination-bullet {
+        background-color: var(--primary-color);
+        opacity: 0.5;
+    }
+
+    .swiper-pagination-bullet-active {
+        opacity: 1;
+        background-color: var(--primary-color);
+        width: 25px;
+        border-radius: 5px;
+    }
+
+    /* Loading Indicators */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255,255,255,0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .loading-overlay.active {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(52, 152, 219, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Shimmer effect for loading */
+    .shimmer {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        to { background-position: -200% 0; }
+    }
+
+    .business-card.loading .business-img {
+        background-image: none !important;
+    }
+
+    .business-card.loading h4,
+    .business-card.loading .business-description,
+    .business-card.loading .business-category,
+    .business-card.loading .business-rating {
+        color: transparent !important;
+        background: #eee;
+        border-radius: 4px;
+    }
+
+    /* Category Section */
+    .categories-section {
+        padding: 3rem 0;
     }
 
     .section-title {
         text-align: center;
-        margin-bottom: 40px;
-        color: #333;
-        font-weight: 700;
+        margin-bottom: 2.5rem;
+        position: relative;
     }
 
-    .section-title span {
-        color: #2c6eff;
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: #3498db;
+    }
+
+    .category-card {
+        text-align: center;
+        padding: 2rem 1rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        background-color: white;
+        margin-bottom: 1.5rem;
+        cursor: pointer;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .category-icon {
+        font-size: 2.5rem;
+        color: #3498db;
+        margin-bottom: 1rem;
+    }
+
+    .category-card h5 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .category-card p {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* Featured Businesses Section */
+    .featured-section {
+        padding: 3rem 0;
+        background-color: #f8f9fa;
+        padding-left: 15px;
+        padding-right: 15px;
+        max-width: 1320px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .business-card {
-        border: none;
+        background: white;
         border-radius: 10px;
         overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
-        height: 100%;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
     }
 
     .business-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
 
-    .card-img-top {
+    .business-img {
         height: 200px;
-        object-fit: cover;
+        background-size: cover;
+        background-position: center;
+        position: relative;
     }
 
-    .card-body {
-        padding: 20px;
+    .business-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #e74c3c;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .business-content {
+        padding: 1.5rem;
     }
 
     .business-title {
         font-weight: 600;
-        margin-bottom: 10px;
-        color: #333;
+        margin-bottom: 0.5rem;
     }
 
     .business-category {
-        color: #2c6eff;
-        font-weight: 500;
-        margin-bottom: 15px;
-        display: block;
+        color: #3498db;
+        font-size: 0.9rem;
+        margin-bottom: 0.8rem;
     }
 
     .business-description {
-        color: #666;
-        margin-bottom: 20px;
+        color: #6c757d;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        text-overflow: ellipsis;
     }
 
     .business-features {
-        margin-bottom: 15px;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
     .feature-badge {
-        background-color: #f8f9fa;
-        color: #666;
-        font-size: 0.8rem;
-        padding: 5px 10px;
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+        padding: 0.2rem 0.6rem;
         border-radius: 20px;
-        margin-right: 5px;
-        margin-bottom: 5px;
-        display: inline-block;
+        font-size: 0.8rem;
     }
 
     .business-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-top: 1rem;
     }
 
-    .view-button {
-        color: #2c6eff;
-        font-weight: 600;
+    .business-rating {
+        color: #f1c40f;
+    }
+
+    .business-link {
+        background-color: #3498db;
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 5px;
         text-decoration: none;
-        transition: all 0.2s ease;
+        font-weight: 500;
+        transition: all 0.3s ease;
     }
 
-    .view-button:hover {
-        color: #1b5ce0;
-        text-decoration: underline;
-    }
-
-    .rating {
-        color: #ffc107;
-    }
-
-    .sponsored-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background-color: rgba(44, 110, 255, 0.9);
+    .business-link:hover {
+        background-color: #2980b9;
         color: white;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-weight: 600;
-        font-size: 0.75rem;
     }
 
-    .pagination-container {
-        display: flex;
+    .pagination {
+        margin-top: 2rem;
         justify-content: center;
-        margin-top: 40px;
     }
 
-    .pagination .page-link {
-        color: #2c6eff;
-        border: none;
-        margin: 0 5px;
+    .page-link {
+        color: #3498db;
         border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        margin: 0 0.2rem;
     }
 
-    .pagination .page-item.active .page-link {
-        background-color: #2c6eff;
-        color: white;
+    .page-item.active .page-link {
+        background-color: #3498db;
+        border-color: #3498db;
     }
 
-    .search-input-icon {
+    /* Enhanced Pagination with Better Loading Indicator */
+    .pagination-container {
+        position: relative;
+        padding: 20px 0;
+        min-height: 80px; /* Ensure there's space for the loading indicator */
+    }
+
+    .pagination-loader {
         position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        left: 10px;
-        color: #aaa;
-        z-index: 10;
-    }
-
-    .search-input-with-icon {
-        padding-left: 35px;
-    }
-
-    .suggestions-container {
-        position: absolute;
-        top: 100%;
+        top: 0;
         left: 0;
         right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+    }
+
+    .pagination-loader.active {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .pagination-loader .spinner {
+        width: 30px;
+        height: 30px;
+        border: 3px solid rgba(52, 152, 219, 0.2);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 0.8s linear infinite;
+    }
+
+    /* Improved Stats Section */
+    .stats-section {
+        background-color: #2c3e50;
+        color: white;
+        padding: 3.5rem 0;
+        text-align: center;
+        margin-bottom: 0;
+        border-radius: 0;
+    }
+
+    .stats-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+
+    .stat-item {
+        padding: 1.5rem;
+        flex: 1;
+        min-width: 200px;
+        margin: 0.5rem;
+        position: relative;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #3498db;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        line-height: 1.2;
+        display: block;
+    }
+
+    .stat-text {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        display: block;
+    }
+
+    .stat-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 25%;
+        bottom: 25%;
+        width: 1px;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .stat-item:not(:last-child)::after {
+            display: none;
+        }
+        
+        .stat-item {
+            min-width: 150px;
+        }
+    }
+
+    /* Improved Testimonials with Letter Avatars */
+    .testimonial-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Different colors for different testimonials */
+    .testimonial-img.color-1 {
+        background-color: #3498db;
+    }
+
+    .testimonial-img.color-2 {
+        background-color: #e74c3c;
+    }
+
+    .testimonial-img.color-3 {
+        background-color: #2ecc71;
+    }
+
+    /* Enhanced Testimonials Section */
+    .testimonials-section {
+        padding: 4rem 0;
+        background-color: #f8f9fa;
+        padding-left: 15px;
+        padding-right: 15px;
+        max-width: 1320px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .testimonial-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    }
+
+    .testimonial-content {
+        font-style: italic;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        position: relative;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .testimonial-content::before {
+        content: '"';
+        position: absolute;
+        top: -20px;
+        left: -10px;
+        font-size: 3.5rem;
+        color: rgba(52, 152, 219, 0.2);
+        font-family: serif;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 1.2rem;
+    }
+
+    .testimonial-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+    }
+
+    .testimonial-name {
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: #2c3e50;
+    }
+
+    .testimonial-position {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* Different colors for testimonial avatars */
+    .testimonial-img.color-1 {
+        background-color: #3498db;
+    }
+
+    .testimonial-img.color-2 {
+        background-color: #e74c3c;
+    }
+
+    .testimonial-img.color-3 {
+        background-color: #2ecc71;
+    }
+
+    /* Enhanced Call To Action Section */
+    .cta-section {
+        background: linear-gradient(135deg, #3498db, #2c3e50);
+        color: white;
+        padding: 5rem 0;
+        text-align: center;
+        border-radius: 0 100px 0 0;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 -5px 25px rgba(0,0,0,0.1);
+        margin-bottom: 0;
+        border-radius: 0;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        z-index: 1;
+    }
+
+    .cta-section::after {
+        content: '';
+        position: absolute;
+        bottom: -80px;
+        left: -80px;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        z-index: 1;
+    }
+
+    .cta-title {
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .cta-text {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 2.5rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 2;
+        line-height: 1.6;
+    }
+
+    .cta-btn {
         background-color: white;
-        border-radius: 0 0 5px 5px;
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        max-height: 200px;
-        overflow-y: auto;
-        display: none;
+        color: #3498db;
+        border-radius: 50px;
+        padding: 1rem 2.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        display: inline-block;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     }
 
-    .suggestion-item {
-        padding: 10px 15px;
-        cursor: pointer;
-        border-bottom: 1px solid #f5f5f5;
+    .cta-btn:hover {
+        background-color: rgba(255,255,255,0.9);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+        color: #2980b9;
     }
 
-    .suggestion-item:hover {
-        background-color: #f9f9f9;
-    }
-
-    .location-marker {
-        color: #ff5252;
-        margin-right: 5px;
+    @media (max-width: 768px) {
+        .cta-section {
+            padding: 4rem 1rem;
+        }
+        
+        .cta-title {
+            font-size: 2.2rem;
+        }
     }
 </style>
 
-<!-- Hero Section with Search -->
-<section class="hero-section">
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<!-- Hero Section -->
+<section class="hero-section full-width-section">
+    <!-- Wave Animations -->
+    <div class="wave wave-1"></div>
+    <div class="wave wave-2"></div>
+    <div class="wave wave-3"></div>
+    
+    <!-- Floating Elements -->
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    
+    <!-- Particles -->
+    <div class="particle p1"></div>
+    <div class="particle p2"></div>
+    <div class="particle p3"></div>
+    <div class="particle p4"></div>
+    <div class="particle p5"></div>
+    
     <div class="container">
-        <div class="hero-content">
-            <h1 class="hero-title">Find the Perfect Business</h1>
-            <p class="hero-subtitle">Discover top businesses in your area</p>
-            
-            <div class="search-box">
-                <form id="searchForm" action="/Business/Search" method="get">
-                    <div class="row search-row">
-                        <div class="col-lg-8 mb-3 mb-lg-0">
-                            <div class="position-relative">
-                                <i class="fas fa-search search-input-icon"></i>
-                                <input type="text" id="searchInput" name="searchTerm" class="form-control search-input-with-icon" placeholder="Search for businesses, features, or keywords" autocomplete="off">
-                                <div id="searchSuggestions" class="suggestions-container"></div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <select id="categorySelect" name="categoryId" class="form-select">
-                                <option value="">All Categories</option>
-                                @if (ViewBag.Categories != null)
-                                {
-                                    foreach (var category in ViewBag.Categories)
-                                    {
-                                        <option value="@category.Id">@category.Name</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row search-row">
-                        <div class="col-lg-8 mb-3 mb-lg-0">
-                            <div class="position-relative">
-                                <i class="fas fa-map-marker-alt search-input-icon"></i>
-                                <input type="text" id="locationInput" name="location" class="form-control search-input-with-icon" placeholder="Enter location" autocomplete="off">
-                                <div id="locationSuggestions" class="suggestions-container"></div>
-                                <input type="hidden" id="latitude" name="lat">
-                                <input type="hidden" id="longitude" name="lng">
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <button type="submit" class="search-button">
-                                <i class="fas fa-search me-2"></i> Search
-                            </button>
-                        </div>
-                    </div>
+        <div class="row align-items-center">
+            <div class="col-lg-10 mx-auto hero-content text-center">
+                <h1 class="mb-4">Discover Amazing Local Businesses</h1>
+                <p class="mb-4">Find top-rated services, read authentic reviews, and connect with the best businesses in your area. Your perfect local experience starts here.</p>
+                <form class="hero-search d-flex" action="/Business/Search" method="get" id="heroSearchForm">
+                    <input type="text" class="form-control" name="searchTerm" id="heroSearchInput" 
+                           placeholder="Search for businesses, services, or categories..." autocomplete="off">
+                    <button type="submit" class="btn ms-2">Search</button>
+                    <div class="search-suggestions" id="searchSuggestions"></div>
                 </form>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Sponsored Businesses Section -->
-<section class="sponsored-section">
+<!-- Categories Slider Section (Replacing static categories grid) -->
+<section class="categories-slider-section">
     <div class="container">
-        <h2 class="section-title">Sponsored <span>Businesses</span></h2>
+        <h2 class="section-title">Browse by Categories</h2>
+        <div class="categories-slider">
+            <div class="swiper-container" id="categoriesSwiper">
+                <div class="swiper-wrapper">
+                    @if (ViewBag.Categories != null)
+                    {
+                        foreach (var category in ViewBag.Categories)
+                        {
+                            <div class="swiper-slide">
+                                <div class="category-slide" onclick="location.href='/Business/Search?categoryId=@category.Id'">
+                                    <div class="category-icon">
+                                        <i class="@(string.IsNullOrEmpty(category?.Icon) ? "fas fa-store" : category.Icon)"></i>
+                                    </div>
+                                    <h5>@(category?.Name ?? "Category")</h5>
+                                    @{
+                                        var businessCount = ViewBag.CategoryBusinessCounts != null && 
+                                            ViewBag.CategoryBusinessCounts.ContainsKey(category.Id) ? 
+                                            ViewBag.CategoryBusinessCounts[category.Id] : 0;
+                                    }
+                                    <p>@businessCount businesses</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <!-- Add pagination and navigation -->
+                <div class="swiper-pagination"></div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Businesses Section -->
+<section class="featured-section">
+    <div class="container">
+        <h2 class="section-title">Premium Businesses</h2>
         
-        <div class="row">
+        <div class="row" id="businessesContainer">
             @if (Model != null && Model.Any())
             {
                 foreach (var business in Model)
                 {
-                    <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="card business-card">
-                            <span class="sponsored-badge">Premium</span>
-                            <img src="@business.MainImage" class="card-img-top" alt="@business.Name">
-                            <div class="card-body">
-                                <h5 class="business-title">@business.Name</h5>
-                                <span class="business-category">
-                                    <i class="fas fa-tag me-2"></i>@(business.Category?.Name ?? "General")
-                                </span>
-                                <p class="business-description">@business.Description</p>
-                                
-                                <div class="business-features">
-                                    @if (business.BusinessFeatures != null && business.BusinessFeatures.Any())
-                                    {
-                                        foreach (var feature in business.BusinessFeatures.Take(3))
+                    <div class="col-lg-4 col-md-6">
+                        <div class="business-card">
+                            <div class="business-img" style="background-image: url('@(string.IsNullOrEmpty(business?.MainImage) ? "/images/default-business.jpg" : business.MainImage)')">
+                                @if (business?.PackageId > 2)
+                                {
+                                    <div class="business-badge">Featured</div>
+                                }
+                            </div>
+                            <div class="business-content">
+                                <h4 class="business-title">@(business?.Name ?? "Business")</h4>
+                                <div class="business-category">
+                                    <i class="@(string.IsNullOrEmpty(business?.Category?.Icon) ? "fas fa-tag" : business.Category.Icon) me-1"></i>
+                                    @(business?.Category?.Name ?? "General")
+                                </div>
+                                <p class="business-description">@(business?.Description ?? "No description available")</p>
+                                @if (business?.BusinessFeatures != null && business.BusinessFeatures.Any())
+                                {
+                                    <div class="business-features">
+                                        @foreach (var feature in business.BusinessFeatures.Take(3))
                                         {
                                             <span class="feature-badge">@feature.Name</span>
                                         }
-                                        
-                                        if (business.BusinessFeatures.Count > 3)
+                                        @if (business.BusinessFeatures.Count > 3)
                                         {
                                             <span class="feature-badge">+@(business.BusinessFeatures.Count - 3) more</span>
                                         }
-                                    }
-                                </div>
-                                
+                                    </div>
+                                }
                                 <div class="business-footer">
-                                    <div class="rating">
+                                    <div class="business-rating">
                                         @{
-                                            // Fixed rating calculation
-                                            double rating = 0;
-                                            if (business.Reviews != null && business.Reviews.Any())
-                                            {
-                                                rating = business.Reviews.Average(r => r.Rating);
-                                            }
-                                            
+                                            var rating = business?.Reviews != null && business.Reviews.Any() ? 
+                                                business.Reviews.Average(r => r.Rating) : 0;
                                             for (int i = 1; i <= 5; i++)
                                             {
                                                 if (i <= Math.Round(rating))
                                                 {
                                                     <i class="fas fa-star"></i>
+                                                }
+                                                else if (i - 0.5 <= rating)
+                                                {
+                                                    <i class="fas fa-star-half-alt"></i>
                                                 }
                                                 else
                                                 {
@@ -365,10 +1302,9 @@
                                                 }
                                             }
                                         }
+                                        <span class="ms-1">(@(business?.Reviews?.Count ?? 0))</span>
                                     </div>
-                                    <a href="/Business/GetBusinessById/@business.Id" class="view-button">
-                                        View Details <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
+                                    <a href="/Business/GetBusinessById?id=@business?.Id" class="business-link">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -378,219 +1314,519 @@
             else
             {
                 <div class="col-12 text-center">
-                    <p>No featured businesses available at the moment.</p>
+                    <p>No premium businesses available</p>
                 </div>
             }
         </div>
         
-        <!-- Pagination -->
+        <!-- Enhanced Pagination -->
         <div class="pagination-container">
-            <ul class="pagination">
-                @if (ViewBag.CurrentPage > 1)
-                {
-                    <li class="page-item">
-                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                }
-                
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                {
-                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                        <a class="page-link" href="?page=@i">@i</a>
-                    </li>
-                }
-                
-                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                {
-                    <li class="page-item">
-                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                }
-            </ul>
+            <div class="pagination-loader" id="paginationLoader">
+                <div class="spinner"></div>
+            </div>
+            <nav aria-label="Businesses pagination">
+                <ul class="pagination" id="businessPagination">
+                    @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 0)
+                    {
+                        <!-- Previous page button -->
+                        <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="javascript:void(0)" data-page="@(ViewBag.CurrentPage - 1)" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        
+                            int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
+                            int endPage = Math.Min(ViewBag.TotalPages, startPage + 4);
+                            
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" data-page="1">1</a>
+                                </li>
+                                
+                                if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="javascript:void(0)">...</a>
+                                    </li>
+                                }
+                            }
+                            
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="javascript:void(0)" data-page="@i">@i</a>
+                                </li>
+                            }
+                            
+                            @if (endPage < ViewBag.TotalPages)
+                            {
+                                if (endPage < ViewBag.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="javascript:void(0)">...</a>
+                                    </li>
+                                }
+                                
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" data-page="@ViewBag.TotalPages">@ViewBag.TotalPages</a>
+                                </li>
+                            }
+                       
+                        
+                       
+                        <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="javascript:void(0)" data-page="@(ViewBag.CurrentPage + 1)" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
         </div>
     </div>
 </section>
 
+<!-- Improved Stats Section with fixed layout -->
+<section class="stats-section full-width-section">
+    <div class="container">
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-number" id="businessCount">500+</span>
+                <span class="stat-text">Businesses</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="userCount">10k+</span>
+                <span class="stat-text">Happy Users</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="reviewCount">2.5k+</span>
+                <span class="stat-text">Reviews</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="cityCount">50+</span>
+                <span class="stat-text">Cities</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Testimonials Section -->
+<section class="testimonials-section">
+    <div class="container">
+        <h2 class="section-title">What Our Users Say</h2>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        This platform has completely transformed how I find local services. The reviews are honest and businesses are responsive.
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-img color-1">S</div>
+                        <div>
+                            <div class="testimonial-name">Sarah Johnson</div>
+                            <div class="testimonial-position">Regular User</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        As a small business owner, this directory has been a game changer for my visibility. I've seen a 40% increase in new customers!
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-img color-2">M</div>
+                        <div>
+                            <div class="testimonial-name">Michael Smith</div>
+                            <div class="testimonial-position">Business Owner</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        The detailed business profiles and customer reviews helped me find exactly what I was looking for. Highly recommended!
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-img color-3">E</div>
+                        <div>
+                            <div class="testimonial-name">Emily Davis</div>
+                            <div class="testimonial-position">New User</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Call To Action Section -->
+<section class="cta-section full-width-section">
+    <div class="container">
+        <h2 class="cta-title">Ready to Grow Your Business?</h2>
+        <p class="cta-text">List your business in our directory and reach thousands of potential customers. Choose from flexible packages to boost your visibility.</p>
+        <a href="/Business/Add" class="cta-btn">Add Your Business</a>
+    </div>
+</section>
+
 @section Scripts {
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Include Swiper.js for the category slider -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
+    
     <script>
-        $(document).ready(function() {
-            // Initialize Select2 for category dropdown
-            $('#categorySelect').select2({
-                placeholder: "All Categories",
-                allowClear: true
+        // Initialize the Category Slider
+        document.addEventListener('DOMContentLoaded', function() {
+            const swiper = new Swiper('#categoriesSwiper', {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                loop: false,
+                grabCursor: true,
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                breakpoints: {
+                    640: {
+                        slidesPerView: 2,
+                    },
+                    768: {
+                        slidesPerView: 3,
+                    },
+                    1024: {
+                        slidesPerView: 4,
+                    },
+                },
+                autoplay: {
+                    delay: 5000,
+                },
             });
             
-            // Business name search suggestions
-            $('#searchInput').on('input', function() {
-                const query = $(this).val().trim();
-                if (query.length >= 2) {
-                    $.ajax({
-                        url: '/Business/SearchSuggestions',
-                        type: 'GET',
-                        data: { query: query },
-                        success: function(data) {
-                            populateSuggestions(data, '#searchSuggestions', '#searchInput');
-                        },
-                        error: function(error) {
-                            console.error('Error fetching search suggestions:', error);
+            // Search Suggestions Functionality
+            const searchInput = document.getElementById('heroSearchInput');
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            let typingTimer;
+            
+            searchInput.addEventListener('input', function() {
+                clearTimeout(typingTimer);
+                
+                if (this.value.length < 2) {
+                    suggestionsContainer.style.display = 'none';
+                    return;
+                }
+                
+                typingTimer = setTimeout(() => {
+                    fetchSuggestions(this.value);
+                }, 300); // Reduced timeout for better responsiveness
+            });
+            
+            searchInput.addEventListener('focus', function() {
+                if (this.value.length >= 2) {
+                    suggestionsContainer.style.display = 'block';
+                }
+            });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+            
+            function fetchSuggestions(query) {
+                fetch(`/Home/SearchSuggestions?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            renderSuggestions(data);
+                            suggestionsContainer.style.display = 'block';
+                        } else {
+                            suggestionsContainer.style.display = 'none';
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                        suggestionsContainer.style.display = 'none';
                     });
-                } else {
-                    $('#searchSuggestions').hide();
-                }
-            });
+            }
             
-            // Location search suggestions with geocoding
-            let debounceTimer;
-            $('#locationInput').on('input', function() {
-                const query = $(this).val().trim();
+            function renderSuggestions(suggestions) {
+                suggestionsContainer.innerHTML = '';
                 
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function() {
-                    if (query.length >= 2) {
-                        $.ajax({
-                            url: 'https://nominatim.openstreetmap.org/search',
-                            type: 'GET',
-                            data: {
-                                q: query,
-                                format: 'json',
-                                limit: 5
-                            },
-                            success: function(data) {
-                                const suggestions = data.map(item => ({
-                                    id: item.place_id,
-                                    text: item.display_name,
-                                    lat: item.lat,
-                                    lon: item.lon
-                                }));
-                                
-                                populateLocationSuggestions(suggestions);
-                            },
-                            error: function(error) {
-                                console.error('Error fetching location suggestions:', error);
-                            }
-                        });
-                    } else {
-                        $('#locationSuggestions').hide();
+                suggestions.forEach(suggestion => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    
+                    // Check if it's a category or feature suggestion
+                    let iconClass = 'fas fa-search';
+                    let categoryText = '';
+                    
+                    if (suggestion.text.includes('(Category)')) {
+                        iconClass = 'fas fa-tag';
+                        categoryText = '<span class="suggestion-category">Category</span>';
+                    } else if (suggestion.text.includes('(Feature)')) {
+                        iconClass = 'fas fa-check-circle';
+                        categoryText = '<span class="suggestion-category">Feature</span>';
                     }
-                }, 300);
-            });
-            
-            // Handle clicking outside suggestion containers
-            $(document).on('click', function(e) {
-                if (!$(e.target).closest('#searchInput, #searchSuggestions').length) {
-                    $('#searchSuggestions').hide();
-                }
-                
-                if (!$(e.target).closest('#locationInput, #locationSuggestions').length) {
-                    $('#locationSuggestions').hide();
-                }
-            });
-            
-            // Function to populate search suggestions
-            function populateSuggestions(data, containerId, inputId) {
-                const container = $(containerId);
-                container.empty();
-                
-                if (data && data.length > 0) {
-                    data.forEach(function(item) {
-                        const suggestionItem = $('<div>')
-                            .addClass('suggestion-item')
-                            .text(item.text || item)
-                            .on('click', function() {
-                                $(inputId).val(item.text || item);
-                                container.hide();
-                            });
-                        
-                        container.append(suggestionItem);
+                    
+                    // Clean up the text by removing the (Category) or (Feature) part
+                    let displayText = suggestion.text.replace(/ \(Category\)| \(Feature\)/g, '');
+                    
+                    item.innerHTML = `
+                        <span class="suggestion-icon"><i class="${iconClass}"></i></span>
+                        <span class="suggestion-text">${displayText}</span>
+                        ${categoryText}
+                    `;
+                    
+                    item.addEventListener('click', function() {
+                        searchInput.value = displayText;
+                        suggestionsContainer.style.display = 'none';
+                        document.getElementById('heroSearchForm').submit();
                     });
                     
-                    container.show();
-                } else {
-                    container.hide();
-                }
+                    suggestionsContainer.appendChild(item);
+                });
             }
             
-            // Function to populate location suggestions
-            function populateLocationSuggestions(suggestions) {
-                const container = $('#locationSuggestions');
-                container.empty();
-                
-                if (suggestions && suggestions.length > 0) {
-                    suggestions.forEach(function(item) {
-                        const suggestionItem = $('<div>')
-                            .addClass('suggestion-item')
-                            .html(`<i class="fas fa-map-marker-alt location-marker"></i>${item.text}`)
-                            .on('click', function() {
-                                $('#locationInput').val(item.text);
-                                $('#latitude').val(item.lat);
-                                $('#longitude').val(item.lon);
-                                container.hide();
-                            });
-                        
-                        container.append(suggestionItem);
-                    });
-                    
-                    container.show();
-                } else {
-                    container.hide();
-                }
-            }
+            // Pagination with Loading Indicator
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const businessesContainer = document.getElementById('businessesContainer');
+            const pagination = document.getElementById('businessPagination');
+            const paginationLoader = document.getElementById('paginationLoader');
             
-            // Search form validation
-            $('#searchForm').on('submit', function(e) {
-                const searchTerm = $('#searchInput').val().trim();
-                const location = $('#locationInput').val().trim();
-                const category = $('#categorySelect').val();
-                
-                if (!searchTerm && !location && !category) {
+            pagination.addEventListener('click', function(e) {
+                const pageLink = e.target.closest('.page-link');
+                if (pageLink && !pageLink.parentElement.classList.contains('disabled')) {
                     e.preventDefault();
-                    alert('Please enter at least one search criteria');
-                    return false;
+                    const pageNumber = pageLink.getAttribute('data-page');
+                    loadSponsoredBusinesses(pageNumber);
                 }
-                
-                return true;
             });
             
-            // Use browser geolocation if available
-            if (navigator.geolocation) {
-                $('#getUserLocation').on('click', function(e) {
-                    e.preventDefault();
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
+            function loadSponsoredBusinesses(page) {
+                // Show loading indicator only in the pagination area
+                paginationLoader.classList.add('active');
+                
+                // Also apply loading effect to business cards
+                const businessCards = document.querySelectorAll('.business-card');
+                businessCards.forEach(card => {
+                    card.style.opacity = '0.6';
+                });
+                
+                // Fetch data
+                fetch(`/Home/SponsoredBusinesses?page=${page}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Short timeout for better user experience
+                    setTimeout(() => {
+                        // Update the businesses content
+                        businessesContainer.innerHTML = html;
                         
-                        // Reverse geocode to get address
-                        $.ajax({
-                            url: `https://nominatim.openstreetmap.org/reverse`,
-                            type: 'GET',
-                            data: {
-                                lat: lat,
-                                lon: lng,
-                                format: 'json'
-                            },
-                            success: function(data) {
-                                if (data) {
-                                    $('#locationInput').val(data.display_name);
-                                    $('#latitude').val(lat);
-                                    $('#longitude').val(lng);
-                                }
-                            },
-                            error: function(error) {
-                                console.error('Error reverse geocoding:', error);
-                            }
+                        // Update pagination UI
+                        updatePaginationUI(page);
+                        
+                        // Hide the loader
+                        paginationLoader.classList.remove('active');
+                        
+                        // Restore opacity to business cards
+                        businessCards.forEach(card => {
+                            card.style.opacity = '1';
                         });
-                    }, function(error) {
-                        console.error('Error getting location:', error);
-                        alert('Unable to get your location. Please enter it manually.');
+                        
+                        // Smooth scroll to the top of the business section
+                        const featuredSection = document.querySelector('.featured-section');
+                        if (featuredSection) {
+                            window.scrollTo({
+                                top: featuredSection.offsetTop - 80, // Account for the header
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 500);
+                })
+                .catch(error => {
+                    console.error('Error loading businesses:', error);
+                    paginationLoader.classList.remove('active');
+                    businessCards.forEach(card => {
+                        card.style.opacity = '1';
                     });
                 });
+            }
+            
+            function updatePaginationUI(currentPage) {
+                currentPage = parseInt(currentPage);
+                const totalPages = @(ViewBag.TotalPages ?? 1);
+                
+                // Update the active state
+                document.querySelectorAll('#businessPagination .page-item').forEach(item => {
+                    item.classList.remove('active');
+                    
+                    // Find the page number link
+                    const pageLink = item.querySelector('.page-link');
+                    if (pageLink && pageLink.getAttribute('data-page') == currentPage) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // Update previous/next buttons
+                const prevButton = document.querySelector('#businessPagination .page-item:first-child');
+                const nextButton = document.querySelector('#businessPagination .page-item:last-child');
+                
+                if (prevButton) {
+                    if (currentPage <= 1) {
+                        prevButton.classList.add('disabled');
+                    } else {
+                        prevButton.classList.remove('disabled');
+                        prevButton.querySelector('.page-link').setAttribute('data-page', currentPage - 1);
+                    }
+                }
+                
+                if (nextButton) {
+                    if (currentPage >= totalPages) {
+                        nextButton.classList.add('disabled');
+                    } else {
+                        nextButton.classList.remove('disabled');
+                        nextButton.querySelector('.page-link').setAttribute('data-page', currentPage + 1);
+                    }
+                }
+            }
+            
+            // Stats counter animation
+            const counterAnimation = () => {
+                const counters = document.querySelectorAll('.stat-number');
+                counters.forEach(counter => {
+                    const targetValue = parseInt(counter.textContent);
+                    const increment = targetValue / 100;
+                    let currentValue = 0;
+                    
+                    const updateCounter = () => {
+                        if (currentValue < targetValue) {
+                            currentValue += increment;
+                            counter.textContent = Math.floor(currentValue) + '+';
+                            setTimeout(updateCounter, 10);
+                        } else {
+                            counter.textContent = targetValue + '+';
+                        }
+                    };
+                    
+                    updateCounter();
+                });
+            };
+            
+            // Observer for stats animation
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        counterAnimation();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            const statsSection = document.querySelector('.stats-section');
+            if (statsSection) {
+                observer.observe(statsSection);
+            }
+
+            // كود التأثيرات المتحركة للهيرو
+            const heroSection = document.querySelector('.hero-section');
+            if (heroSection) {
+                // إضافة تأثيرات عند تمرير الماوس (Parallax effect)
+                heroSection.addEventListener('mousemove', function(e) {
+                    const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+                    const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+                    
+                    const floatingElements = document.querySelectorAll('.floating-element');
+                    floatingElements.forEach((element, index) => {
+                        const speed = (index + 1) * 0.05;
+                        element.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
+                    });
+                });
+            }
+
+            // Advanced hero section effects
+            if (heroSection) {
+                // Dynamic Parallax Effect
+                heroSection.addEventListener('mousemove', function(e) {
+                    const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+                    const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+                    
+                    // Float elements parallax
+                    const floatingElements = document.querySelectorAll('.floating-element');
+                    floatingElements.forEach((element, index) => {
+                        const speed = (index + 1) * 0.06;
+                        element.style.transform = `translate(${moveX * speed * 2}px, ${moveY * speed * 2}px) scale(${1 + (moveX + moveY) * 0.001})`;
+                    });
+                    
+                    // Content parallax effect
+                    const heroContent = document.querySelector('.hero-content');
+                    heroContent.style.transform = `translate(${moveX * -0.02}px, ${moveY * -0.02}px)`;
+                    
+                    // Animated wave parallax
+                    const waves = document.querySelectorAll('.wave');
+                    waves.forEach((wave, index) => {
+                        const waveSpeed = (index + 1) * 0.01;
+                        wave.style.transform = `translateX(${moveX * waveSpeed * 5}px)`;
+                    });
+                });
+                
+                // Particle Animation System
+                function createParticles() {
+                    const particles = document.querySelectorAll('.particle');
+                    particles.forEach((particle, index) => {
+                        // Reset animation
+                        particle.style.animation = 'none';
+                        particle.offsetHeight; // Trigger reflow
+                        
+                        // Random position
+                        const randomLeft = Math.random() * 100;
+                        particle.style.left = `${randomLeft}%`;
+                        
+                        // Restore animation with random delay
+                        const animationName = `particle${index + 1}`;
+                        const animationDuration = 4 + Math.random() * 4;
+                        const animationDelay = Math.random() * 5;
+                        
+                        particle.style.animation = `${animationName} ${animationDuration}s ease-in ${animationDelay}s infinite`;
+                    });
+                }
+                
+                // Initialize particles on load
+                createParticles();
+                
+                // Re-initialize particles periodically
+                setInterval(createParticles, 10000);
+                
+                // Add dynamic color shift to hero background
+                let hueRotate = 0;
+                let colorDirection = 1;
+                
+                function animateBackground() {
+                    hueRotate += 0.2 * colorDirection;
+                    
+                    // Reverse direction when reaching limits
+                    if (hueRotate > 15 || hueRotate < -15) {
+                        colorDirection *= -1;
+                    }
+                    
+                    heroSection.style.filter = `hue-rotate(${hueRotate}deg)`;
+                    requestAnimationFrame(animateBackground);
+                }
+                
+                // Start subtle background animation
+                animateBackground();
             }
         });
     </script>

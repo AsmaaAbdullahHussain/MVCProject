@@ -1,7 +1,7 @@
 ﻿using mvc.Enums;
 using mvc.Models;
 using mvc.RepoInterfaces;
-using MVC.Models;
+using mvc.Models;
 using PayPalCheckoutSdk.Core;
 
 using PayPalCheckoutSdk.Orders;

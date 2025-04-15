@@ -1,44 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using mvc.ViewModels.ReviewVM;
-using MVC.Hubs;
-using System.Threading.Tasks;
+using mvc.Hubs;
 using System.Security.Claims;
+using mvc.Controllers;
+using AspNetCoreGeneratedDocument;
 
 namespace mvc.Controllers
 {
     public class ReviewController : Controller
     {
-        IReviewRepository _reviewRepository;
-        IBussinessRepository _bussinessRepository;
+        private readonly IReviewRepository _reviewRepository;
+        private readonly IBussinessRepository _businessRepository;
         private readonly IHubContext<ReviewHub> hubcontext;
 
-        public ReviewController(IReviewRepository reviewRepository, IBussinessRepository bussinessRepository, IHubContext<ReviewHub> hubcontext)
+        public ReviewController(IReviewRepository reviewRepository, IBussinessRepository businessRepository, IHubContext<ReviewHub> hubcontext)
         {
             _reviewRepository = reviewRepository;
-            _bussinessRepository = bussinessRepository;
+            _businessRepository = businessRepository;
             this.hubcontext = hubcontext;
         }
+
         public async Task<IActionResult> GetAllByBussniss(int bussnissId)
         {
-            List<Review> reviews = await _reviewRepository.GetAll(r=>r.BusinessId==bussnissId).ToListAsync();
+            List<Review> reviews = (await _reviewRepository.GetByBusinessIdAsync(bussnissId)).ToList();
             return View(reviews);
         }
+
         public IActionResult Add()
         {
             return View();
         }
+
         public async Task<IActionResult> SaveAdd(AddReviewVM reviewVM)
         {
-            Business business = await _bussinessRepository.GetByIdAsync(reviewVM.BusinessId);
+            Business business = await _businessRepository.GetByIdAsync(reviewVM.BusinessId);
             if (business == null)
             {
                 ModelState.AddModelError("BusinessId", "Business not found");
             }
-            if(_reviewRepository.IsExist(reviewVM.Email))
+            if (_reviewRepository.IsExist(reviewVM.Email))
             {
                 ModelState.AddModelError("Email", "Email already add an review you ");
             }
@@ -59,7 +64,6 @@ namespace mvc.Controllers
             }
 
             return View("Add", reviewVM);
-
         }
 
         [HttpGet]
@@ -68,7 +72,7 @@ namespace mvc.Controllers
             int count = await _reviewRepository.GetAll(r => !r.IsRead).CountAsync();
             return Json(count);
         }
-     
+
         public async Task<IActionResult> GetUnreadReviews()
         {
             var unreadReviews = await _reviewRepository.GetAll(r => !r.IsRead).ToListAsync();
@@ -91,9 +95,9 @@ namespace mvc.Controllers
             {
                 return Json(new object[0]);
             }
-            
+
             // Get all businesses owned by current user
-            var userBusinessIds = _bussinessRepository.GetAll()
+            var userBusinessIds = _businessRepository.GetAll()
                 .Where(b => b.OwnerId == userId)
                 .Select(b => b.Id)
                 .ToList();
@@ -104,7 +108,7 @@ namespace mvc.Controllers
             }
 
             // Get reviews for these businesses, ordered by most recent
-            var reviews = await _reviewRepository.GetAll(r => 
+            var reviews = await _reviewRepository.GetAll(r =>
                     userBusinessIds.Contains(r.BusinessId))
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(10) // Limit to 10 most recent
@@ -120,7 +124,7 @@ namespace mvc.Controllers
                     timeAgo = GetTimeAgo(r.CreatedAt)
                 })
                 .ToListAsync();
-            
+
             return Json(reviews);
         }
 
@@ -132,75 +136,95 @@ namespace mvc.Controllers
             {
                 return Json(0);
             }
-            
+
             // Get all businesses owned by current user
-            var userBusinessIds = _bussinessRepository.GetAll()
+            var userBusinessIds = _businessRepository.GetAll()
                 .Where(b => b.OwnerId == userId)
                 .Select(b => b.Id)
                 .ToList();
 
             // Count unread reviews for these businesses
-            int count = await _reviewRepository.GetAll(r => 
+            int count = await _reviewRepository.GetAll(r =>
                     userBusinessIds.Contains(r.BusinessId) && !r.IsRead)
                 .CountAsync();
-            
+
             return Json(count);
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> MarkAsRead(int id)
         {
-            var review = await _reviewRepository.GetByIdAsync(id);
-            if (review == null)
+            try
             {
-                return NotFound();
+                var review = await _reviewRepository.GetByIdAsync(id);
+                if (review == null)
+                {
+                    return Json(new { success = false, message = "Review not found" });
+                }
+
+                // Handle both user-owned business reviews and admin reviews
+                if (User.IsInRole("Admin"))
+                {
+                    // Admin can mark any review as read
+                    review.IsRead = true;
+                    await _reviewRepository.UpdateAsync(review);
+                    await _reviewRepository.SaveAsync();
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    // Regular users can only mark reviews for their own businesses
+                    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var business = await _businessRepository.GetByIdAsync(review.BusinessId);
+
+                    if (business == null || business.OwnerId != userId)
+                    {
+                        return Json(new { success = false, message = "You don't have permission to mark this review as read" });
+                    }
+
+                    review.IsRead = true;
+                    await _reviewRepository.UpdateAsync(review);
+                    await _reviewRepository.SaveAsync();
+                    return Json(new { success = true });
+                }
             }
-            
-            // Check if the review belongs to a business owned by the current user
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var business = await _bussinessRepository.GetByIdAsync(review.BusinessId);
-            
-            if (business == null || business.OwnerId != userId)
+            catch (Exception ex)
             {
-                return Forbid();
+                return Json(new { success = false, message = "An error occurred" });
             }
-            
-            review.IsRead = true;
-            await _reviewRepository.SaveAsync();
-            
-            return Ok();
         }
 
         [HttpPost]
         public async Task<IActionResult> MarkAllAsRead()
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
+
             // Get all businesses owned by current user
-            var userBusinessIds = _bussinessRepository.GetAll()
+            var userBusinessIds = _businessRepository.GetAll()
                 .Where(b => b.OwnerId == userId)
                 .Select(b => b.Id)
                 .ToList();
 
             // Get all unread reviews for these businesses
-            var unreadReviews = await _reviewRepository.GetAll(r => 
+            var unreadReviews = await _reviewRepository.GetAll(r =>
                     userBusinessIds.Contains(r.BusinessId) && !r.IsRead)
                 .ToListAsync();
-            
+
             foreach (var review in unreadReviews)
             {
                 review.IsRead = true;
             }
-            
+
             await _reviewRepository.SaveAsync();
-            
+
             return Ok();
         }
 
         private string GetTimeAgo(DateTime dateTime)
         {
             var timeSpan = DateTime.UtcNow - dateTime;
-            
+
             if (timeSpan.TotalMinutes < 1)
                 return "just now";
             if (timeSpan.TotalMinutes < 60)
@@ -213,7 +237,7 @@ namespace mvc.Controllers
                 return $"{(int)(timeSpan.TotalDays / 7)} week{((int)(timeSpan.TotalDays / 7) == 1 ? "" : "s")} ago";
             if (timeSpan.TotalDays < 365)
                 return $"{(int)(timeSpan.TotalDays / 30)} month{((int)(timeSpan.TotalDays / 30) == 1 ? "" : "s")} ago";
-            
+
             return $"{(int)(timeSpan.TotalDays / 365)} year{((int)(timeSpan.TotalDays / 365) == 1 ? "" : "s")} ago";
         }
 
@@ -231,12 +255,13 @@ namespace mvc.Controllers
                 Rating = review.Rating,
                 Comment = review.Comment
             };
-            
+
             return View(reviewVM);
         }
-        public async Task<IActionResult> SaveEditAsync(int id,EditReviewVM reviewVM)
+
+        public async Task<IActionResult> SaveEditAsync(int id, EditReviewVM reviewVM)
         {
-           
+
             if (ModelState.IsValid)
             {
                 Review review = await _reviewRepository.GetByIdAsync(id);
@@ -250,13 +275,143 @@ namespace mvc.Controllers
             return View("Edit", reviewVM);
         }
 
-        public async Task<ActionResult> Delete(int id)/////admin
+        public async Task<ActionResult> Delete(int id)
         {
+            // First, get the review and store its BusinessId before deletion
             Review review = await _reviewRepository.GetByIdAsync(id);
+            
+            // Check if review exists
+            if (review == null)
+            {
+                TempData["Error"] = "Review not found";
+                return RedirectToAction("Index", "Home"); // or redirect to appropriate fallback page
+            }
+            
+            // Store the BusinessId for later use
+            int businessId = review.BusinessId;
+            
+            // Delete the review
             await _reviewRepository.DeleteAsync(id);
             await _reviewRepository.SaveAsync();
-            return RedirectToAction("GetAllByBussniss", new { bussnissId = review.BusinessId });
+            
+            // Use the stored BusinessId for redirection
+            return RedirectToAction("GetAllByBussniss", new { bussnissId = businessId });
         }
 
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> Add(Review review)
+        {
+            review.Business =  await _businessRepository.GetByIdAsync(review.BusinessId);
+
+            if (ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "Please fill in all required fields correctly." });
+            }
+
+            try
+            {
+                // Check if business exists
+                var business = review.BusinessId;
+                if (business == null)
+                {
+                    return Json(new { success = false, message = "Business not found." });
+                }
+
+                // Check if user already reviewed this business
+                var userEmail = review.Email;
+                var existingReview = await _reviewRepository.GetByBusinessAndEmailAsync(review.BusinessId, userEmail);
+                
+                if (existingReview != null)
+                {
+                    // Update existing review
+                    existingReview.Rating = review.Rating;
+                    existingReview.Comment = review.Comment;
+                    existingReview.CreatedAt = DateTime.UtcNow;
+                    existingReview.IsRead = false; // Mark as unread for new notification
+                    
+                    await _reviewRepository.UpdateAsync(existingReview);
+                    await _reviewRepository.SaveAsync();
+                    
+                    // Notify through SignalR
+                    var reviewVM = new AddReviewVM
+                    {
+                        Email = existingReview.Email,
+                        BusinessId = existingReview.BusinessId,
+                        Rating = existingReview.Rating,
+                        Comment = existingReview.Comment
+                    };
+                    
+                    await hubcontext.Clients.All.SendAsync("NewReviewArrived", reviewVM);
+                    
+                    return Json(new { success = true, message = "Your review has been updated successfully!" });
+                }
+                
+                // Set creation date and read status
+                review.CreatedAt = DateTime.UtcNow;
+                review.IsRead = false;
+                
+                // Save new review
+                await _reviewRepository.AddAsync(review);
+                await _reviewRepository.SaveAsync();
+                
+                // Notify through SignalR
+                var newReviewVM = new AddReviewVM
+                {
+                    Email = review.Email,
+                    BusinessId = review.BusinessId,
+                    Rating = review.Rating,
+                    Comment = review.Comment
+                };
+                
+                await hubcontext.Clients.All.SendAsync("NewReviewArrived", newReviewVM);
+                
+                return Json(new { success = true, message = "Your review has been submitted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding review: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while submitting your review. Please try again." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetReviewsPartial(int businessId)
+        {
+            try
+            {
+                // Get the business
+                var business = await _businessRepository.GetByIdAsync(businessId);
+                if (business == null)
+                {
+                    return PartialView("_ReviewsPartial", new List<Review>());
+                }
+                
+                // Get current user ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                
+                // Set the owner status
+                ViewBag.IsOwner = !string.IsNullOrEmpty(userId) && userId == business.OwnerId;
+                
+                // Get reviews for this business
+                var reviews = await _reviewRepository.GetByBusinessIdAsync(businessId);
+                
+                // Calculate average rating
+                double averageRating = business.GetAverageRating();
+                
+                // Calculate rating percentages
+                var ratingPercentages = business.GetRatingPercentages();
+                
+                ViewBag.AverageRating = averageRating;
+                ViewBag.RatingPercentages = ratingPercentages;
+                
+                return PartialView("_ReviewsPartial", reviews);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching reviews: {ex.Message}");
+                return PartialView("_ReviewsPartial", new List<Review>());
+            }
+        }
     }
 }

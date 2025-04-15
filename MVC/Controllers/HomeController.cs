@@ -30,30 +30,40 @@ public class HomeController : Controller
             int pageSize = 6;
             
             // Get premium/sponsored businesses (those with non-free packages)
-            var sponsoredBusinesses = await _businessRepository.GetAll(b => 
+            var query = _businessRepository.GetAll(b => 
                 b.IsActive && 
-                b.PackageId > 1// Assuming packageId 1 is the free package
-                  
-
-
-            )
-            .Include(b => b.Category)
-            .Include(b => b.BusinessFeatures)
-            .Include(b => b.Reviews)
-            .OrderByDescending(b => b.PackageId) // Higher package first
-            .ThenByDescending(b => b.SubscriptionEndDate) // Latest subscription first
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+                b.PackageId > 1
+            );
             
-            // Get categories for dropdown
-            ViewBag.Categories = await _categoryRepository.GetAll().ToListAsync();
+            // Ensure needed relations are included
+            query = query.Include(b => b.Category)
+                .Include(b => b.BusinessFeatures)
+                .Include(b => b.Reviews);
+                
+            var sponsoredBusinesses = await query
+                .OrderByDescending(b => b.PackageId) // Higher package first
+                .ThenByDescending(b => b.SubscriptionEndDate) // Latest subscription first
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            
+            // Get categories for dropdown - ensure this doesn't return null
+            var categories = await _categoryRepository.GetAll().ToListAsync();
+            ViewBag.Categories = categories ?? new List<Category>();
+            
+            // Get business counts for each category
+            var categoryBusinessCounts = new Dictionary<int, int>();
+            foreach (var category in categories)
+            {
+                var count = await _businessRepository.GetAll(b => b.IsActive && b.CategoryId == category.Id).CountAsync();
+                categoryBusinessCounts[category.Id] = count;
+            }
+            ViewBag.CategoryBusinessCounts = categoryBusinessCounts;
             
             // Pagination info
             var totalBusinesses = await _businessRepository.GetAll(b => 
                 b.IsActive && 
                 b.PackageId > 1 
-              //  b.SubscriptionEndDate > DateTime.Now
             ).CountAsync();
             
             ViewBag.CurrentPage = page;
@@ -64,10 +74,15 @@ public class HomeController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading home page");
+            ViewBag.Categories = new List<Category>(); // Ensure ViewBag has non-null values
+            ViewBag.CategoryBusinessCounts = new Dictionary<int, int>();
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = 1;
             return View(new List<Business>());
         }
     }
 
+    // Improved search suggestions with categorization 
     [HttpGet]
     public async Task<IActionResult> SearchSuggestions(string query)
     {
@@ -85,18 +100,29 @@ public class HomeController : Controller
             .Take(5)
             .ToListAsync();
             
-            // Search in business features
+            // Search in categories - add (Category) suffix
+            var categorySuggestions = await _categoryRepository.GetAll()
+                .Where(c => c.Name.Contains(query))
+                .Select(c => new { text = c.Name + " (Category)" })
+                .Take(3)
+                .ToListAsync();
+            
+            // Search in business features - add (Feature) suffix
             var featureSuggestions = await _businessRepository.GetAll(b => 
                 b.IsActive && 
                 b.BusinessFeatures.Any(f => f.Name.Contains(query))
             )
             .SelectMany(b => b.BusinessFeatures.Where(f => f.Name.Contains(query)))
-            .Select(f => new { text = f.Name })
+            .Select(f => new { text = f.Name + " (Feature)" })
             .Distinct()
-            .Take(5)
+            .Take(3)
             .ToListAsync();
             
-            var combinedSuggestions = businessSuggestions.Union(featureSuggestions).Take(10).ToList();
+            var combinedSuggestions = businessSuggestions
+                .Union(categorySuggestions)
+                .Union(featureSuggestions)
+                .Take(10)
+                .ToList();
             
             return Json(combinedSuggestions);
         }
@@ -104,6 +130,36 @@ public class HomeController : Controller
         {
             _logger.LogError(ex, "Error getting search suggestions");
             return Json(new List<string>());
+        }
+    }
+
+    // Method to handle AJAX pagination for sponsored businesses
+    [HttpGet]
+    public async Task<IActionResult> SponsoredBusinesses(int page = 1)
+    {
+        try
+        {
+            int pageSize = 6;
+            
+            // Get only sponsored businesses (package > 1)
+            var businesses = await _businessRepository.GetAll(b => 
+                b.IsActive && 
+                b.PackageId > 1 // Ensure only sponsored businesses
+            )
+            .Include(b => b.Category)
+            .Include(b => b.BusinessFeatures)
+            .Include(b => b.Reviews)
+            .OrderByDescending(b => b.PackageId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+            
+            return PartialView("_BusinessesPartial", businesses);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading sponsored businesses for AJAX pagination");
+            return Content("Error loading businesses. Please try again.");
         }
     }
 
