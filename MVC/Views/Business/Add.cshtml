@@ -379,7 +379,7 @@
         margin-right: 0.5rem;
     }
 
-    /* Custom Loader */
+  
     .form-overlay {
         position: fixed;
         top: 0;
@@ -489,13 +489,12 @@
     }
 </style>
 
-<!-- Loading Overlay -->
+
 <div class="form-overlay" id="formOverlay">
     <div class="form-loader"></div>
     <div class="form-loader-text">Saving your business...</div>
 </div>
 
-<!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="add-business-container">
@@ -508,7 +507,7 @@
                     <form asp-action="Save" id="businessForm" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
                         
-                        <!-- Basic Information Section -->
+                       
                         <div class="form-section">
                             <h2 class="section-title"><i class="fas fa-info-circle"></i> Basic Information</h2>
                             <p class="section-desc">Provide the essential details about your business.</p>
@@ -553,7 +552,7 @@
                                       oninput="previewImage(this.value)" />
                                 <span asp-validation-for="MainImage" class="field-validation-error"></span>
                                 
-                                <!-- Image Preview -->
+                               
                                 <div class="image-preview-container" id="imagePreviewContainer">
                                     <img src="" alt="Business Image Preview" class="image-preview" id="imagePreview">
                                     <div class="image-preview-placeholder" id="imagePreviewPlaceholder">
@@ -564,7 +563,7 @@
                             </div>
                         </div>
                         
-                        <!-- Location Section -->
+                      
                         <div class="form-section">
                             <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> Location</h2>
                             <p class="section-desc">Help customers find your business location.</p>
@@ -597,13 +596,13 @@
                             </div>
                         </div>
                         
-                        <!-- Business Hours Section -->
+                        
                         <div class="form-section">
                             <h2 class="section-title"><i class="far fa-clock"></i> Business Hours</h2>
                             <p class="section-desc">Let customers know when you're open for business.</p>
                             
                             <div class="business-hours-container">
-                                <!-- Sunday -->
+                           
                                 <div class="day-row">
                                     <div class="day-name">Sunday</div>
                                     <div class="hours-input-group">
@@ -620,7 +619,7 @@
                                     <input type="hidden" name="OpeningHours[0].IsClosed" value="false" class="is-closed-input" />
                                 </div>
                                 
-                                <!-- Monday -->
+                            
                                 <div class="day-row">
                                     <div class="day-name">Monday</div>
                                     <div class="hours-input-group">
@@ -637,7 +636,7 @@
                                     <input type="hidden" name="OpeningHours[1].IsClosed" value="false" class="is-closed-input" />
                                 </div>
                                 
-                                <!-- Tuesday -->
+                               
                                 <div class="day-row">
                                     <div class="day-name">Tuesday</div>
                                     <div class="hours-input-group">
@@ -654,7 +653,7 @@
                                     <input type="hidden" name="OpeningHours[2].IsClosed" value="false" class="is-closed-input" />
                                 </div>
                                 
-                                <!-- Wednesday -->
+                               
                                 <div class="day-row">
                                     <div class="day-name">Wednesday</div>
                                     <div class="hours-input-group">
@@ -671,7 +670,7 @@
                                     <input type="hidden" name="OpeningHours[3].IsClosed" value="false" class="is-closed-input" />
                                 </div>
                                 
-                                <!-- Thursday -->
+                               
                                 <div class="day-row">
                                     <div class="day-name">Thursday</div>
                                     <div class="hours-input-group">
@@ -688,7 +687,7 @@
                                     <input type="hidden" name="OpeningHours[4].IsClosed" value="false" class="is-closed-input" />
                                 </div>
                                 
-                                <!-- Friday -->
+                              
                                 <div class="day-row">
                                     <div class="day-name">Friday</div>
                                     <div class="hours-input-group">
@@ -705,7 +704,7 @@
                                     <input type="hidden" name="OpeningHours[5].IsClosed" value="false" class="is-closed-input" />
                                 </div>
                                 
-                                <!-- Saturday -->
+                              
                                 <div class="day-row">
                                     <div class="day-name">Saturday</div>
                                     <div class="hours-input-group">
@@ -724,29 +723,29 @@
                             </div>
                         </div>
                         
-                        <!-- Business Features Section -->
+                       
                         <div class="form-section">
                             <h2 class="section-title"><i class="fas fa-star"></i> Business Features</h2>
                             <p class="section-desc">Highlight what makes your business special.</p>
                             
-                            <!-- Category Features (loaded dynamically) -->
+                           
                             <div class="category-features-container" id="categoryFeaturesContainer" style="display: none;">
                                 <h4 class="category-features-title">
                                     <i class="fas fa-tags"></i> Available Category Features 
                                 </h4>
                                 <div class="category-features-list" id="categoryFeaturesList">
-                                    <!-- Category features will be added here -->
+                                   
                                 </div>
                             </div>
                             
-                            <!-- Custom Features -->
+                           
                             <h4 class="category-features-title">
                                 <i class="fas fa-plus-circle"></i> Custom Features
                             </h4>
                             <div id="featuresContainer">
-                                <!-- Feature items will be added here -->
+                               
                                 <div class="feature-item">
-                                    @* <input type="text" name="BusinessFeatures[0].Name" class="form-control" placeholder="Enter a feature (e.g., Free WiFi, Parking Available)" /> *@
+                                   
                                     <input type="text"  class="form-control" placeholder="Enter a feature (e.g., Free WiFi, Parking Available)" />
                                     <button type="button" class="remove-feature" onclick="removeFeature(this)">
                                         <i class="fas fa-times"></i>
@@ -759,7 +758,7 @@
                             </button>
                         </div>
                         
-                        <!-- Form Actions -->
+                       
                         <div class="form-actions">
                             <a href="/" class="btn btn-cancel">Cancel</a>
                             <button type="submit" class="btn btn-submit" id="submitButton">
@@ -781,9 +780,9 @@
         let featureCount = 1;
         let categoryFeatureCount = 0;
         
-        // Initialize map
+
         function initMap() {
-            // Default to a central location if no coordinates provided
+            
             const initialLat = 31.9539;
             const initialLng = 35.9106;
             
@@ -798,12 +797,12 @@
                 draggable: true
             });
             
-            // Update coordinates when marker is dragged
+            
             google.maps.event.addListener(marker, 'dragend', function() {
                 updateCoordinates(marker.getPosition());
             });
             
-            // Initialize Google Places Autocomplete
+           
             const input = document.getElementById('address-input');
             const autocomplete = new google.maps.places.Autocomplete(input);
             
@@ -814,36 +813,36 @@
                     return;
                 }
                 
-                // Update map and marker positions
+                
                 map.setCenter(place.geometry.location);
                 marker.setPosition(place.geometry.location);
                 
-                // Update form fields
+                
                 updateCoordinates(place.geometry.location);
             });
         }
         
-        // Update latitude and longitude fields
+       
         function updateCoordinates(position) {
             document.getElementById('latitude').value = position.lat().toFixed(6);
             document.getElementById('longitude').value = position.lng().toFixed(6);
         }
         
-        // Toggle business hours closed state
+       
         function toggleDayClosed(checkbox, index) {
             const row = checkbox.closest('.day-row');
             const timeInputs = row.querySelectorAll('.time-input');
             const isClosedInput = row.querySelector('.is-closed-input');
             
             if (checkbox.checked) {
-                // Day is closed
+              
                 timeInputs.forEach(input => {
                     input.disabled = true;
                     input.value = '';
                 });
                 isClosedInput.value = 'true';
             } else {
-                // Day is open
+                
                 timeInputs.forEach(input => {
                     input.disabled = false;
                 });
@@ -851,7 +850,7 @@
             }
         }
         
-        // Preview image when URL is entered
+       
         function previewImage(url) {
             const preview = document.getElementById('imagePreview');
             const container = document.getElementById('imagePreviewContainer');
@@ -870,14 +869,14 @@
             }
         }
         
-        // Check if URL is potentially a valid image URL
+       
         function isValidImageUrl(url) {
             if (!url) return false;
             
-            // Basic URL validation - could be improved
+            
             if (!url.match(/^https?:\/\/.+\..+/i)) return false;
             
-            // Check if the URL ends with a common image extension
+           
             const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
             const lowercaseUrl = url.toLowerCase();
             return imageExtensions.some(ext => lowercaseUrl.endsWith(ext)) || 
@@ -885,19 +884,19 @@
                    lowercaseUrl.includes('photo');
         }
         
-        // Load category features when category is selected
+       
         function loadCategoryFeatures(categoryId) {
             if (!categoryId) {
                 document.getElementById('categoryFeaturesContainer').style.display = 'none';
                 return;
             }
             
-            // Show loading in the features section
+           
             const featuresContainer = document.getElementById('categoryFeaturesList');
             featuresContainer.innerHTML = '<div class="text-center w-100 py-3"><i class="fas fa-spinner fa-spin me-2"></i> Loading features...</div>';
             document.getElementById('categoryFeaturesContainer').style.display = 'block';
             
-            // Fetch category features from the server
+           
             fetch(`/Business/GetCategoryFeatures?categoryId=${categoryId}`)
                 .then(response => {
                     if (!response.ok) {
@@ -918,7 +917,7 @@
                 });
         }
         
-        // Display category features in the UI
+       
         function displayCategoryFeatures(features) {
             const featuresContainer = document.getElementById('categoryFeaturesList');
             featuresContainer.innerHTML = '';
@@ -934,31 +933,31 @@
             });
         }
         
-        // Toggle selected category feature
+      
         function toggleCategoryFeature(checkbox, featureName) {
             if (checkbox.checked) {
-                // Add as a business feature
+                
                 addFeatureWithName(featureName);
             } else {
-                // Remove this feature if it exists
+               
                 removeFeatureByName(featureName);
             }
         }
         
-        // Add a feature with a specific name (for category features)
+        
         function addFeatureWithName(name) {
-            // Check if this feature name already exists
+          
             const existingInputs = document.querySelectorAll('#featuresContainer input[type="text"]');
             for (let input of existingInputs) {
                 if (input.value.toLowerCase() === name.toLowerCase()) {
-                    return; // Feature already exists
+                    return; 
                 }
             }
             
             addFeature(name);
         }
         
-        // Remove a feature by name
+       
         function removeFeatureByName(name) {
             const featuresContainer = document.getElementById('featuresContainer');
             const featureInputs = featuresContainer.querySelectorAll('input[type="text"]');
@@ -972,7 +971,7 @@
             });
         }
         
-        // Add a new feature input
+       
         function addFeature(value = '') {
             const container = document.getElementById('featuresContainer');
             const featureItem = document.createElement('div');
@@ -989,13 +988,13 @@
             featureCount++;
         }
         
-        // Remove a feature input
+        
         function removeFeature(button) {
             const featureItem = button.closest('.feature-item');
-            // Get the feature name to uncheck corresponding category feature
+           
             const featureName = featureItem.querySelector('input[type="text"]').value;
             
-            // Find and uncheck the category feature if it exists
+           
             document.querySelectorAll('#categoryFeaturesList input[type="checkbox"]').forEach(checkbox => {
                 const label = checkbox.nextElementSibling;
                 if (label && label.textContent.toLowerCase() === featureName.toLowerCase()) {
@@ -1007,7 +1006,7 @@
             reindexFeatures();
         }
         
-        // Reindex feature inputs after removal
+
         function reindexFeatures() {
             const featureInputs = document.querySelectorAll('#featuresContainer input[type="text"]');
             featureInputs.forEach((input, index) => {
@@ -1016,7 +1015,7 @@
             featureCount = featureInputs.length;
         }
         
-        // Show a toast message
+   
         function showToast(type, title, message, duration = 5000) {
             const toastContainer = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -1035,13 +1034,13 @@
             `;
             toastContainer.appendChild(toast);
             
-            // Auto-remove after duration
+        
             setTimeout(() => {
                 closeToast(toast.querySelector('.toast-close'));
             }, duration);
         }
         
-        // Close a toast
+      
         function closeToast(button) {
             const toast = button.closest('.toast');
             toast.classList.add('hide');
@@ -1050,32 +1049,29 @@
             }, 300);
         }
         
-        // Handle form submission with loading indicator
+       
         document.getElementById('businessForm').addEventListener('submit', function(e) {
-            // Show loading overlay
+          
             document.getElementById('formOverlay').classList.add('active');
             document.getElementById('submitButton').disabled = true;
             
-            // For demo purposes, let's simulate success or error based on validation
+          
             if (!this.checkValidity()) {
                 e.preventDefault();
                 document.getElementById('formOverlay').classList.remove('active');
                 document.getElementById('submitButton').disabled = false;
                 showToast('error', 'Validation Error', 'Please check the form for errors and try again.');
-            } else {
-                // Form is valid, let's proceed with submission
-                // The actual submission will happen naturally since we didn't prevent default
-                
-                // You could add AJAX submission here if you prefer
-                // and then handle redirect manually
+            } 
+            else {
+                showToast('success', 'Success', 'Your business has been added successfully!');
             }
         });
         
-        // Initialize on page load
+       
         window.onload = function() {
             initMap();
             
-            // Check for success/error messages in TempData
+          
             @if (TempData["Success"] != null)
             {
                 <text>

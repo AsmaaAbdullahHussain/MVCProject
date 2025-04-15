@@ -4,8 +4,6 @@ using mvc.Enums;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using mvc.ViewModels;
-using mvc.Models;
-using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace mvc.Controllers
@@ -33,8 +31,7 @@ namespace mvc.Controllers
             return View();
         }
 
-        // return all business if pageNumber or size == Null 
-        // or return some business if we want to divide the view to some pages
+       
         public IActionResult GetAll(int packetId = 0, int pageNumber = 0, int size = 0)
         {
             List<Business> businessList = DbBusiness.GetAll(packetId, pageNumber, size).ToList();
@@ -49,7 +46,7 @@ namespace mvc.Controllers
             
             try
             {
-                // إضافة قائمة الباقات (مع مراعاة الخصائص المتاحة في Package class)
+               
                 var packages = _context.Packages.ToList();
                 if (packages != null && packages.Any())
                 {
@@ -57,22 +54,22 @@ namespace mvc.Controllers
                 }
                 else
                 {
-                    // إضافة باقة افتراضية إذا لم يتم العثور على أي باقات
+                    
                     business.Packages = new List<Package> { 
                         new Package { 
                             Id = 1, 
                             Name = "Regular",
-                            // Remove the Price property which doesn't exist
+                           
                             MonthlyPrice = 0,
                             YearlyPrice = 0
-                            // Description is also removed since it might not exist
+                           
                         } 
                     };
                 }
             }
             catch (Exception ex)
             {
-                // تسجيل الخطأ ولكن لا تدع التطبيق يتوقف
+               
                 Console.WriteLine($"Error loading packages: {ex.Message}");
                 business.Packages = new List<Package>();
             }
@@ -85,7 +82,7 @@ namespace mvc.Controllers
         {
             try
             {
-                // Check if user is logged in
+               
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -97,7 +94,7 @@ namespace mvc.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    // Check for duplicate business name
+                    
                     bool isExist = await DbBusiness.IsBusinessExistAsync(busFromReq.Name);
                     if (isExist)
                     {
@@ -107,17 +104,17 @@ namespace mvc.Controllers
                         return View("Add", busFromReq);
                     }
 
-                    // Use a database transaction to ensure integrity
+                   
                     using (var transaction = _context.Database.BeginTransaction())
                     {
                         try
                         {
-                            // Set default Regular package
-                            int defaultPackageId = 1; // Regular free package
+                           
+                            int defaultPackageId = 1; 
 
                             Console.WriteLine($"Saving new business: {busFromReq.Name}, Category: {busFromReq.CategoryId}, Owner: {userId}");
 
-                            // Create business object
+                           
                             Business NewBusiness = new Business
                             {
                                 Name = busFromReq.Name,
@@ -134,7 +131,7 @@ namespace mvc.Controllers
                                 BusinessType = BusinessType.Regular
                             };
 
-                            // Save business
+                           
                             await DbBusiness.AddAsync(NewBusiness);
                             int saveResult = await DbBusiness.SaveAsync();
                             if (saveResult <= 0)
@@ -144,7 +141,7 @@ namespace mvc.Controllers
                             
                             Console.WriteLine($"Business saved successfully with result: {saveResult}");
 
-                            // Get ID of the added business
+                           
                             int newBusinessId = DbBusiness.getIdByName(NewBusiness.Name);
                             if (newBusinessId <= 0)
                             {
@@ -152,7 +149,7 @@ namespace mvc.Controllers
                             }
                             Console.WriteLine($"Retrieved business ID: {newBusinessId}");
 
-                            // Handle business features
+                           
                             if (busFromReq.BusinessFeatures != null && busFromReq.BusinessFeatures.Any())
                             {
                                 int featuresAdded = 0;
@@ -175,17 +172,17 @@ namespace mvc.Controllers
                                 }
                             }
 
-                            // Handle opening hours
+                            
                             var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
                             if (openingHourRepository == null)
                             {
-                                // Log the error
+                              
                                 Console.WriteLine("Error: Could not resolve IOpeningHourRepository");
-                                // Handle the missing service appropriately - either throw an exception or continue without it
+                               
                             } 
                             else 
                             {
-                                // Use the service
+                               
                                 if (busFromReq.OpeningHours != null && busFromReq.OpeningHours.Any())
                                 {
                                     Console.WriteLine($"Processing {busFromReq.OpeningHours.Count} business hours records");
@@ -215,14 +212,14 @@ namespace mvc.Controllers
                         {
                             await transaction.RollbackAsync();
                             Console.WriteLine($"Transaction rolled back: {ex.Message}");
-                            throw; // Rethrow to be handled by outer catch
+                            throw; 
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Log error
+                
                 Console.WriteLine($"Error saving business: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 if (ex.InnerException != null)
@@ -232,7 +229,6 @@ namespace mvc.Controllers
                 ModelState.AddModelError("", "An error occurred while saving the business. Please try again.");
             }
 
-            // Reload required data for the form in case of error
             busFromReq.categories = Dbcategory.GetAll().ToList();
             busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
             return View("Add", busFromReq);
@@ -281,17 +277,17 @@ namespace mvc.Controllers
                 businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList()
             };
 
-            // الحصول على ساعات العمل
+           
             var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
             if (openingHourRepository == null)
             {
-                // Log the error
+                
                 Console.WriteLine("Error: Could not resolve IOpeningHourRepository");
-                // Handle the missing service appropriately - either throw an exception or continue without it
+                
             } 
             else 
             {
-                // Use the service
+                
                 viewModel.OpeningHours = await openingHourRepository.GetByBusinessIdAsync(id);
             }
 
@@ -307,12 +303,12 @@ namespace mvc.Controllers
                 return View("Edit", busFromReq);
             }
 
-            // Start a single transaction
+           
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Check for duplicate name
+               
                 var nameExists = await DbBusiness.GetAll()
                     .AnyAsync(b => b.Id != busFromReq.Id && b.Name == busFromReq.Name);
 
@@ -323,7 +319,7 @@ namespace mvc.Controllers
                     return View("Edit", busFromReq);
                 }
 
-                // Get and update basic data
+               
                 var businessToUpdate = await DbBusiness.GetByIdAsync(busFromReq.Id);
                 if (businessToUpdate == null)
                 {
@@ -331,7 +327,7 @@ namespace mvc.Controllers
                     return NotFound();
                 }
 
-                // Check ownership
+               
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (businessToUpdate.OwnerId != currentUserId && !User.IsInRole("Admin"))
                 {
@@ -339,7 +335,7 @@ namespace mvc.Controllers
                     return Forbid();
                 }
 
-                // Update properties
+               
                 businessToUpdate.Name = busFromReq.Name;
                 businessToUpdate.Longitude = busFromReq.Longitude;
                 businessToUpdate.Latitude = busFromReq.Latitude;
@@ -349,10 +345,9 @@ namespace mvc.Controllers
                 businessToUpdate.Address = busFromReq.Address;
                 businessToUpdate.IsActive = busFromReq.IsActive;
 
-                // Update features
+               
                 await UpdateBusinessFeatures(busFromReq);
 
-                // Update opening hours without a new transaction
                 await UpdateOpeningHoursWithoutTransaction(busFromReq.Id, busFromReq.OpeningHours);
 
                 await _context.SaveChangesAsync();
@@ -374,14 +369,14 @@ namespace mvc.Controllers
         {
             if (openingHours == null || !openingHours.Any()) return;
 
-            // حذف الساعات القديمة
+            
             var existingHours = await _context.OpeningHours
                 .Where(h => h.BusinessId == businessId)
                 .ToListAsync();
 
             _context.OpeningHours.RemoveRange(existingHours);
 
-            // إضافة الساعات الجديدة
+            
             foreach (var hour in openingHours)
             {
                 hour.BusinessId = businessId;

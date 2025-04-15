@@ -8,7 +8,7 @@ namespace mvc.RepoInterfaces
 {
     public interface IReviewRepository : IGeniricRepository<int, Review>
     {
-        // Custom methods for Review
+       
         Task<IEnumerable<Review>> GetByBusinessIdAsync(int businessId);
         Task<Review> GetByBusinessAndEmailAsync(int businessId, string email);
         Task<IEnumerable<Review>> GetRecentReviewsAsync(int count = 10);

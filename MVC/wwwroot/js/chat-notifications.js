@@ -1,24 +1,19 @@
 // Chat notifications system for the website
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait for SignalR to be loaded
     const initChat = () => {
-        // Check if SignalR is available
         if (typeof signalR === 'undefined') {
             console.error('SignalR is not loaded yet');
             
-            // Listen for signalRLoaded event
             document.addEventListener('signalRLoaded', initChat);
             return;
         }
         
-        // SignalR is available, initialize the connection
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/chathub")
-            .withAutomaticReconnect([0, 1000, 5000, 10000, 30000]) // Progressive retry intervals
+            .withAutomaticReconnect([0, 1000, 5000, 10000, 30000])
             .build();
             
-        // Add connection event handlers
         connection.onreconnecting(error => {
             console.warn('Connection lost. Reconnecting...', error);
             showConnectionStatus('Reconnecting...');
@@ -27,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
         connection.onreconnected(connectionId => {
             console.log('Connection reestablished. ID:', connectionId);
             hideConnectionStatus();
-            loadChatNotifications(); // Refresh
+            loadChatNotifications();
         });
         
         connection.onclose(error => {
@@ -35,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showConnectionStatus('Connection lost, attempting to reconnect...');
         });
 
-        // Start connection
         connection.start()
             .then(() => {
                 console.log("Chat Notifications Connected");
@@ -44,10 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(err => {
                 console.error("Error connecting to chat hub:", err);
-                showConnectionStatus('Failed to connect to server');
+              
             });
         
-        // Show connection status
         function showConnectionStatus(message) {
             let statusEl = document.getElementById('chat-connection-status');
             
@@ -66,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
             statusEl.style.display = 'block';
         }
         
-        // Hide connection status
         function hideConnectionStatus() {
             const statusEl = document.getElementById('chat-connection-status');
             if (statusEl) {
@@ -74,22 +66,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Load notifications
         async function loadChatNotifications() {
             try {
                 let conversations;
                 
-                // Check if user is admin or regular user
                 if (document.body.classList.contains('role-admin')) {
                     conversations = await connection.invoke("GetAdminConversations");
                 } else {
                     conversations = await connection.invoke("GetUserConversations");
                 }
                 
-                // Display notifications
                 renderNotifications(conversations);
                 
-                // Update unread count
                 updateUnreadCount(conversations);
             } catch (err) {
                 console.error("Error loading chat notifications:", err);
@@ -101,12 +89,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Render notifications
         function renderNotifications(conversations) {
             const container = document.getElementById('chatNotificationsList');
             if (!container) return;
             
-            // Only items with unread messages
             const unreadConversations = conversations.filter(c => c.unreadCount > 0);
             
             if (unreadConversations.length === 0) {
@@ -118,20 +104,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Sort conversations by last message (newest first)
             unreadConversations.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
             
-            // Create notifications list
             container.innerHTML = '';
             
             for (let i = 0; i < Math.min(unreadConversations.length, 5); i++) {
                 const conv = unreadConversations[i];
                 const isAdmin = document.body.classList.contains('role-admin');
                 
-                // Display name differs by user type
                 const displayName = isAdmin ? conv.userName : 'Support Team';
                 
-                // Convert date to appropriate text
                 const timeAgo = getTimeAgo(new Date(conv.lastMessageAt));
                 
                 const item = document.createElement('a');
@@ -154,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.appendChild(item);
             }
             
-            // Add "View All" link if there are more than 5 conversations
             if (unreadConversations.length > 5) {
                 const viewAllLink = document.createElement('div');
                 viewAllLink.className = 'dropdown-item text-center py-2 text-primary';
@@ -173,12 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Update unread notifications count
         function updateUnreadCount(conversations) {
             const badge = document.querySelector('.chat-badge');
             if (!badge) return;
             
-            // Total unread messages count
             const totalUnread = conversations.reduce((total, conv) => total + conv.unreadCount, 0);
             
             if (totalUnread > 0) {
@@ -188,11 +167,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 badge.classList.add('d-none');
             }
             
-            // Update page title to show unread count
             updatePageTitle(totalUnread);
         }
         
-        // Update page title to show unread count
         function updatePageTitle(unreadCount) {
             const originalTitle = document.title.replace(/^\(\d+\)\s/, '');
             
@@ -203,34 +180,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Receive new notifications
         connection.on("ReceiveAdminMessage", function(data) {
-            // Update notifications only if user is admin
             if (document.body.classList.contains('role-admin')) {
                 loadChatNotifications();
-                // Show toast notification
                 showToastNotification(`New message from ${data.senderName}`, data.message);
             }
         });
         
         connection.on("ReceiveReply", function(data) {
-            // Update notifications for regular users
             if (!document.body.classList.contains('role-admin')) {
                 loadChatNotifications();
-                // Show toast notification
                 showToastNotification('New message from Support Team', data.message);
             }
         });
         
-        // Show toast notification
         function showToastNotification(title, message) {
-            // Check if browser supports notifications
             if (!("Notification" in window)) {
                 console.log("This browser does not support desktop notifications");
                 return;
             }
             
-            // Request permission for notifications if not granted already
             if (Notification.permission === "granted") {
                 const notification = new Notification(title, { 
                     body: message,
@@ -262,28 +231,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Update notifications when refresh button is clicked
         const refreshBtn = document.querySelector('.btn-refresh-notifications');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                // Change refresh icon to spinning icon
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 
-                // Load notifications
                 loadChatNotifications()
                     .finally(() => {
-                        // Restore refresh icon
                         this.innerHTML = '<i class="fas fa-sync-alt"></i>';
                     });
             });
         }
         
-        // Update notifications every minute
         setInterval(loadChatNotifications, 60000);
         
-        // Helper functions
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -311,15 +274,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Request notification permission when page loads
     if ("Notification" in window && Notification.permission === "default") {
-        // Request permission after user interaction with the page
         document.addEventListener('click', function requestNotificationPermission() {
             Notification.requestPermission();
             document.removeEventListener('click', requestNotificationPermission);
         }, {once: true});
     }
 
-    // Start initialization
     initChat();
 });

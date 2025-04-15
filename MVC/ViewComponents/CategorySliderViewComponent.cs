@@ -17,7 +17,7 @@ namespace mvc.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            // Remove the Take(10) to get all categories
+            
             var categories = await _categoryRepository.GetAll().ToListAsync();
             return View(categories);
         }

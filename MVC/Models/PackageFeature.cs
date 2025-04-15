@@ -17,7 +17,7 @@ namespace mvc.Models
         [Required]
         public bool IsIncluded { get; set; }
         
-        // العلاقات
+       
         [ForeignKey("PackageId")]
         public virtual Package Package { get; set; }
     }

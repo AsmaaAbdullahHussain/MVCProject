@@ -3,10 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using mvc.Models;
 using mvc.RepoInterfaces;
 using mvc.ViewModels;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
-using mvc.Repositories;
+
 
 namespace mvc.Controllers
 {
@@ -122,7 +119,7 @@ namespace mvc.Controllers
             
             foreach (var featureModel in model.Features)
             {
-                if (featureModel.FeatureID == 0)  // إذا كان الـ FeatureID صفرًا، يعني فيتشر جديدة
+                if (featureModel.FeatureID == 0)  
                 {
                     category.CategoryFeatures.Add(new CategoryFeatures
                     {

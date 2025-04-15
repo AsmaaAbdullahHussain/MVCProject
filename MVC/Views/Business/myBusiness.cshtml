@@ -5,12 +5,12 @@
     int totalPages = ViewBag.TotalPages != null ? ViewBag.TotalPages : 1;
     int itemsPerPage = ViewBag.ItemsPerPage != null ? ViewBag.ItemsPerPage : 12;
     
-    // Store success/error messages in variables to use in JavaScript
+    
     var successMessage = TempData["Success"]?.ToString();
     var errorMessage = TempData["Error"]?.ToString();
 }
 
-<!-- Add these hidden fields for JavaScript access -->
+
 <input type="hidden" name="userId" value="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" />
 <input type="hidden" name="totalPages" value="@totalPages" />
 <input type="hidden" name="currentPage" value="@currentPage" />
@@ -18,7 +18,7 @@
 <input type="hidden" name="errorMessage" value="@errorMessage" />
 
 <style>
-    /* Page Styles */
+  
     .my-businesses {
         padding: 3rem 0;
         background-color: #f8f9fa;
@@ -39,7 +39,7 @@
         max-width: 800px;
     }
 
-    /* Filter Section */
+  
     .filter-section {
         background-color: white;
         border-radius: 10px;
@@ -87,7 +87,7 @@
         height: 42px;
     }
 
-    /* Business Cards */
+
     .business-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -295,7 +295,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-    /* Pagination styles */
+   
     .pagination-container {
         position: relative;
         padding: 20px 0;
@@ -340,7 +340,7 @@
         }
     }
 
-    /* Main loading overlay */
+    
     .loading-overlay {
         position: fixed;
         top: 0;
@@ -372,20 +372,20 @@
     }
 </style>
 
-<!-- Main loading overlay -->
+
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
 </div>
 
 <section class="my-businesses">
     <div class="container">
-        <!-- Page Header -->
+       
         <div class="page-header">
             <h1 class="page-title">My Businesses</h1>
             <p class="page-description">Manage your business listings, monitor performance, and update information.</p>
         </div>
 
-        <!-- Filter Section -->
+  
         <div class="filter-section">
             <div class="filter-row">
                 <div class="search-box">
@@ -410,7 +410,7 @@
                     </select>
                 </div>
 
-                <!-- New Category Filter Dropdown -->
+              
                 <div class="filter-dropdown">
                     <select class="form-select" id="categoryFilter">
                         <option value="all">All Categories</option>
@@ -430,7 +430,6 @@
             </div>
         </div>
 
-        <!-- Business Grid -->
         <div class="business-grid" id="businessGrid">
             @if (Model != null && Model.Any())
             {
@@ -458,10 +457,10 @@
                                 <h4 class="business-name">@business.Name</h4>
                                 <div class="business-rating">
                                     @{
-                                        // Fix the ToString format issue by explicitly converting to double
+                                       
                                         double rating = business.Reviews != null && business.Reviews.Any() ?
                                         Convert.ToDouble(business.Reviews.Average(r => r.Rating)) : 0.0;
-                                        // Now Format with 1 decimal place
+                                    
                                         string formattedRating = string.Format("{0:0.0}", rating);
                                     }
                                     <i class="fas fa-star"></i> @formattedRating
@@ -520,7 +519,7 @@
             }
         </div>
 
-        <!-- Pagination -->
+      
         @if (Model != null && Model.Any() && totalPages > 1)
         {
             <div class="pagination-container">
@@ -589,7 +588,7 @@
 </section>
 
 @section Scripts {
-    <!-- Delete confirmation modal -->
+ 
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -608,12 +607,12 @@
         </div>
     </div>
 
-    <!-- Use external script file to avoid Razor parsing issues -->
+  
     <script src="~/js/myBusiness.js"></script>
     
-    <!-- Smaller inline script with proper syntax -->
+   
     <script>
-        // Global delete confirmation function
+        
         function confirmDelete(id, name) {
             const nameElement = document.getElementById('businessNameToDelete');
             const confirmBtn = document.getElementById('confirmDeleteBtn');
@@ -625,7 +624,7 @@
             deleteModal.show();
         }
         
-        // Notification handling - separated to avoid Razor parsing issues
+        
         document.addEventListener('DOMContentLoaded', function() {
             const successMsg = document.querySelector('input[name="successMessage"]')?.value;
             const errorMsg = document.querySelector('input[name="errorMessage"]')?.value;

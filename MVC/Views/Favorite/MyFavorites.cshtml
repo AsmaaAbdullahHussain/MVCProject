@@ -100,7 +100,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // تهيئة أزرار إزالة من المفضلة
+           
             document.querySelectorAll('.remove-favorite').forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -120,7 +120,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // إزالة البطاقة مع تأثير انتقالي
+                               
                                 card.style.transition = 'all 0.3s ease';
                                 card.style.opacity = '0';
                                 card.style.transform = 'scale(0.8)';

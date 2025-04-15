@@ -16,7 +16,7 @@ namespace mvc.Models
 
         [Required]
         [StringLength(100)]
-        public string Name { get; set; } // sponsared , Featured , Basic 
+        public string Name { get; set; } 
 
         [Required]
         public decimal MonthlyPrice { get; set; } 
@@ -26,7 +26,7 @@ namespace mvc.Models
 
         public string Description { get; set; }
 
-        // الخصائص
+      
         public virtual ICollection<PackageFeature> Features { get; set; }
         public ICollection<Business>? Businesses { get; set; } 
     }

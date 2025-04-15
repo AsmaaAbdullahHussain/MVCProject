@@ -1,25 +1,17 @@
-/**
- * Library for managing and displaying reviews interactively using SignalR
- */
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait for SignalR to load
     const initReviewHub = () => {
-        // Check if SignalR library is available
         if (typeof signalR === 'undefined') {
             console.error('SignalR is not loaded yet');
             
-            // Listen for SignalR loaded event
             document.addEventListener('signalRLoaded', initReviewHub);
             return;
         }
         
-        // Initialize connection with SignalR
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/reviewhub")
             .withAutomaticReconnect()
             .build();
             
-        // Event on reconnecting
         connection.onreconnecting(error => {
             console.warn('Connection lost. Attempting to reconnect...', error);
             showReviewStatus('Reconnecting...');
@@ -28,10 +20,9 @@ document.addEventListener('DOMContentLoaded', function() {
         connection.onreconnected(connectionId => {
             console.log('Reconnected. ID:', connectionId);
             hideReviewStatus();
-            loadLatestReviews(); // Update reviews
+            loadLatestReviews();
         });
 
-        // Start connection
         connection.start()
             .then(() => {
                 console.log("Connected to review hub");
@@ -44,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showReviewStatus('Failed to connect to the server - reviews will not update automatically');
             });
         
-        // Show connection status
         function showReviewStatus(message) {
             let statusEl = document.getElementById('review-connection-status');
             
@@ -64,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Hide connection status
         function hideReviewStatus() {
             const statusEl = document.getElementById('review-connection-status');
             if (statusEl) {
@@ -72,14 +61,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Load latest reviews
         function loadLatestReviews() {
             const reviewsContainer = document.getElementById('reviewsContainer');
             const businessId = document.getElementById('businessId')?.value;
             
             if (!reviewsContainer || !businessId) return;
             
-            // Display loading message
             reviewsContainer.innerHTML = `
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary" role="status">
@@ -104,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
         
-        // Render reviews
         function renderReviews(reviews) {
             const reviewsContainer = document.getElementById('reviewsContainer');
             if (!reviewsContainer) return;
@@ -121,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             reviewsContainer.innerHTML = '';
             
-            // Sort reviews from newest to oldest
             reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
             reviews.forEach(review => {
@@ -136,7 +121,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     day: 'numeric' 
                 });
                 
-                // Build stars display
                 let starsHtml = '';
                 for (let i = 1; i <= 5; i++) {
                     if (i <= review.rating) {
@@ -146,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                // First letter of user's email
                 const userInitial = review.email.charAt(0).toUpperCase();
                 
                 reviewCard.innerHTML = `
@@ -168,11 +151,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 reviewsContainer.appendChild(reviewCard);
             });
             
-            // Update review count and average
             updateReviewSummary(reviews);
         }
         
-        // Set up review form
         function setupReviewForm() {
             const reviewForm = document.getElementById('reviewForm');
             
@@ -186,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const email = document.getElementById('email').value;
                 const comment = document.getElementById('comment').value;
                 
-                // Validate data
                 if (!rating) {
                     showFormError('Please select a star rating');
                     return;
@@ -202,13 +182,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Show submission status
                 const submitBtn = reviewForm.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
                 
-                // Send review
                 connection.invoke("SubmitReview", {
                     businessId,
                     rating: parseInt(rating),
@@ -216,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     comment
                 })
                 .then(() => {
-                    // Show success message
                     const successAlert = document.createElement('div');
                     successAlert.className = 'alert alert-success alert-dismissible fade show mt-3';
                     successAlert.innerHTML = `
@@ -226,13 +203,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     reviewForm.appendChild(successAlert);
                     
-                    // Reset form
                     reviewForm.reset();
                     document.querySelectorAll('.rating-star').forEach(star => {
                         star.classList.remove('selected');
                     });
                     
-                    // Hide success message after 5 seconds
                     setTimeout(() => {
                         successAlert.remove();
                     }, 5000);
@@ -242,20 +217,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     showFormError('An error occurred while submitting your review. Please try again.');
                 })
                 .finally(() => {
-                    // Re-enable submit button
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
                 });
             });
             
-            // Star rating system
             const ratingStars = document.querySelectorAll('.rating-star');
             ratingStars.forEach(star => {
                 star.addEventListener('click', function() {
                     const rating = this.dataset.rating;
                     document.getElementById('ratingValue').value = rating;
                     
-                    // Update star appearance
                     ratingStars.forEach(s => {
                         if (s.dataset.rating <= rating) {
                             s.classList.add('selected');
@@ -267,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Show form error
         function showFormError(message) {
             let errorElement = document.getElementById('reviewFormError');
             
@@ -280,16 +251,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             errorElement.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${message}`;
             
-            // Scroll to error
             errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Hide error after 5 seconds
             setTimeout(() => {
                 errorElement.remove();
             }, 5000);
         }
         
-        // Update review summary
         function updateReviewSummary(reviews) {
             const totalReviews = reviews.length;
             const avgRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
@@ -321,20 +289,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Receive new reviews (live broadcast)
         connection.on("NewReviewAdded", function(businessId) {
-            // Update reviews only if we're on the same business page
             const currentBusinessId = document.getElementById('businessId')?.value;
             
             if (currentBusinessId && currentBusinessId == businessId) {
-                // Short delay to ensure the review was saved in the database
                 setTimeout(() => {
                     loadLatestReviews();
                 }, 500);
             }
         });
         
-        // Helper functions
         function isValidEmail(email) {
             const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return re.test(String(email).toLowerCase());
@@ -368,6 +332,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Start initialization
     initReviewHub();
 });

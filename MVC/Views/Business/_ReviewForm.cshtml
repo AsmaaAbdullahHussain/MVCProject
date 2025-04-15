@@ -72,12 +72,12 @@
         const ratingInputs = document.querySelectorAll('.stars input');
         ratingInputs.forEach(input => {
             input.addEventListener('change', function() {
-                // Clear all stars
+               
                 ratingInputs.forEach(inp => {
                     inp.nextElementSibling.style.color = '#ddd';
                 });
                 
-                // Fill stars up to selected one
+                
                 const selectedValue = this.value;
                 for (let i = 5; i >= selectedValue; i--) {
                     document.getElementById(`rating-${i}`).nextElementSibling.style.color = '#ffc107';

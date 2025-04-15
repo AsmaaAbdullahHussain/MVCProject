@@ -37,17 +37,13 @@ namespace mvc.Controllers
             return View();
         }
 
-        // return all business if pageNumber or size == Null 
-        // or return some business if we want to divide the view to some pages
         public IActionResult GetAll(int pageNumber = 1, int size = 12, string searchTerm = "", string category = "", 
                                     string rating = "", string package = "", string status = "", string sort = "nameAsc")
         {
             try
             {
-                // Start with all businesses
                 var query = DbBusiness.GetAll();
                 
-                // Apply search filter
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     searchTerm = searchTerm.ToLower();
@@ -55,56 +51,53 @@ namespace mvc.Controllers
                         b.Name.ToLower().Contains(searchTerm) || 
                         (b.Description != null && b.Description.ToLower().Contains(searchTerm)));
                 }
-                
-                // Apply category filter
+               
                 if (!string.IsNullOrWhiteSpace(category) && int.TryParse(category, out int categoryId))
                 {
                     query = query.Where(b => b.CategoryId == categoryId);
                 }
                 
-                // Apply rating filter
+               
                 if (!string.IsNullOrWhiteSpace(rating) && float.TryParse(rating, out float minRating))
                 {
                     query = query.Where(b => b.Reviews.Any() && b.Reviews.Average(r => r.Rating) >= minRating);
                 }
                 
-                // Apply package filter
                 if (!string.IsNullOrWhiteSpace(package) && int.TryParse(package, out int packageId))
                 {
                     query = query.Where(b => b.PackageId == packageId);
                 }
                 
-                // Apply status filter
                 if (!string.IsNullOrWhiteSpace(status) && bool.TryParse(status, out bool isActive))
                 {
                     query = query.Where(b => b.IsActive == isActive);
                 }
                 
-                // Count total for pagination
+                
                 int totalItems = query.Count();
                 int totalPages = (int)Math.Ceiling(totalItems / (float)size);
                 
-                // Apply sorting
+                
                 query = ApplySorting(query, sort);
                 
-                // Include related entities
+               
                 query = query.Include(b => b.Category)
                             .Include(b => b.BusinessFeatures)
                             .Include(b => b.Reviews);
                 
-                // Apply pagination
+                
                 var businesses = query.Skip((pageNumber - 1) * size)
                                      .Take(size)
                                      .ToList();
                 
-                // Load all categories for filters
+          
                 ViewBag.Categories = Dbcategory.GetAll().ToList();
                 ViewBag.CurrentPage = pageNumber;
                 ViewBag.TotalPages = totalPages;
                 ViewBag.ItemsPerPage = size;
                 ViewBag.TotalItems = totalItems;
                 
-                // For AJAX requests, return partial view
+              
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
                     return PartialView("_BusinessesPartial", businesses);
@@ -116,7 +109,7 @@ namespace mvc.Controllers
             {
                 Console.WriteLine($"Error in GetAll: {ex.Message}");
                 
-                // Return empty results rather than error
+               
                 ViewBag.Categories = Dbcategory.GetAll().ToList();
                 ViewBag.CurrentPage = 1;
                 ViewBag.TotalPages = 1;
@@ -138,7 +131,7 @@ namespace mvc.Controllers
                 case "ratingAsc":
                     return query.OrderBy(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0);
                 case "newest":
-                    return query.OrderByDescending(b => b.Id); // Assuming Id correlates with creation time
+                    return query.OrderByDescending(b => b.Id);
                 case "oldest":
                     return query.OrderBy(b => b.Id);
                 case "nameAsc":
@@ -156,7 +149,7 @@ namespace mvc.Controllers
             
             try
             {
-                // إضافة قائمة الباقات (مع مراعاة الخصائص المتاحة في Package class)
+               
                 var packages = _context.Packages.ToList();
                 if (packages != null && packages.Any())
                 {
@@ -164,22 +157,21 @@ namespace mvc.Controllers
                 }
                 else
                 {
-                    // إضافة باقة افتراضية إذا لم يتم العثور على أي باقات
+                   
                     business.Packages = new List<Package> { 
                         new Package { 
                             Id = 1, 
                             Name = "Regular",
-                            // Remove the Price property which doesn't exist
                             MonthlyPrice = 0,
                             YearlyPrice = 0
-                            // Description is also removed since it might not exist
+                           
                         } 
                     };
                 }
             }
             catch (Exception ex)
             {
-                // تسجيل الخطأ ولكن لا تدع التطبيق يتوقف
+               
                 Console.WriteLine($"Error loading packages: {ex.Message}");
                 business.Packages = new List<Package>();
             }
@@ -191,7 +183,7 @@ namespace mvc.Controllers
 {
     try
     {
-        // Check if user is logged in
+        
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId))
         {
@@ -204,7 +196,7 @@ namespace mvc.Controllers
 
         if (ModelState.IsValid)
         {
-            // التحقق من عدم تكرار اسم العمل
+          
             bool isExist = await DbBusiness.IsBusinessExistAsync(busFromReq.Name);
             if (isExist)
             {
@@ -215,17 +207,16 @@ namespace mvc.Controllers
                 return View("Add", busFromReq);
             }
 
-            // استخدام معاملة قاعدة بيانات واحدة لضمان تكامل العملية
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    // تعيين باقة Regular المجانية افتراضيًا
-                    int defaultPackageId = 1; // باقة Regular المجانية
+                 
+                    int defaultPackageId = 1; 
 
                     Console.WriteLine($"Saving new business: {busFromReq.Name}, Category: {busFromReq.CategoryId}, Owner: {userId}");
 
-                    // إنشاء كائن العمل التجاري
+                   
                     Business NewBusiness = new Business
                     {
                         Name = busFromReq.Name,
@@ -242,7 +233,6 @@ namespace mvc.Controllers
                         BusinessType = BusinessType.Regular
                     };
 
-                    // حفظ العمل التجاري
                     await DbBusiness.AddAsync(NewBusiness);
                     int saveResult = await DbBusiness.SaveAsync();
                     if (saveResult <= 0)
@@ -252,7 +242,7 @@ namespace mvc.Controllers
                     
                     Console.WriteLine($"Business saved successfully with result: {saveResult}");
 
-                    // الحصول على معرف العمل المضاف
+                   
                     int newBusinessId = DbBusiness.getIdByName(NewBusiness.Name);
                     if (newBusinessId <= 0)
                     {
@@ -260,7 +250,7 @@ namespace mvc.Controllers
                     }
                     Console.WriteLine($"Retrieved business ID: {newBusinessId}");
 
-                    // معالجة ميزات العمل التجاري
+                   
                     if (busFromReq.BusinessFeatures != null && busFromReq.BusinessFeatures.Any())
                     {
                         int featuresAdded = 0;
@@ -283,17 +273,16 @@ namespace mvc.Controllers
                         }
                     }
 
-                    // معالجة ساعات العمل
                     var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
                     if (openingHourRepository == null)
                     {
-                        // Log the error
+                      
                         Console.WriteLine("Error: Could not resolve IOpeningHourRepository");
-                        // Handle the missing service appropriately - either throw an exception or continue without it
+                       
                     } 
                     else 
                     {
-                        // Use the service
+                       
                         if (busFromReq.OpeningHours != null && busFromReq.OpeningHours.Any())
                         {
                             Console.WriteLine($"Processing {busFromReq.OpeningHours.Count} business hours records");
@@ -324,7 +313,7 @@ namespace mvc.Controllers
                     await transaction.RollbackAsync();
                     Console.WriteLine($"Transaction rolled back: {ex.Message}");
                     TempData["Error"] = "Failed to save business. Please try again.";
-                    throw; // إعادة رمي الاستثناء للتعامل معه في كتلة catch الخارجية
+                    throw;
                 }
             }
         }
@@ -335,7 +324,6 @@ namespace mvc.Controllers
     }
     catch (Exception ex)
     {
-        // Log error
         Console.WriteLine($"Error saving business: {ex.Message}");
         Console.WriteLine($"Stack trace: {ex.StackTrace}");
         if (ex.InnerException != null)
@@ -346,13 +334,12 @@ namespace mvc.Controllers
         TempData["Error"] = "An error occurred: " + ex.Message;
     }
 
-    // إعادة تحميل البيانات المطلوبة للنموذج في حالة الخطأ
+   
     busFromReq.categories = Dbcategory.GetAll().ToList();
     busFromReq.businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList();
     return View("Add", busFromReq);
 }
 
-        // Add this new method to get category features
         [HttpGet]
         public async Task<IActionResult> GetCategoryFeatures(int categoryId)
         {
@@ -364,7 +351,6 @@ namespace mvc.Controllers
                     return NotFound();
                 }
 
-                // Fixed anonymous type issue by explicitly returning empty list of same type
                 var features = category.CategoryFeatures != null && category.CategoryFeatures.Any() 
                     ? category.CategoryFeatures.Select(f => new { id = f.Id, name = f.Name }).ToList() 
                     : new List<object>().Select(o => new { id = 0, name = "" }).ToList();
@@ -418,17 +404,17 @@ namespace mvc.Controllers
                 businessesNameList = DbBusiness.GetAll().Select(b => b.Name).ToList()
             };
 
-            // الحصول على ساعات العمل
+            
             var openingHourRepository = HttpContext.RequestServices.GetService<IOpeningHourRepository>();
             if (openingHourRepository == null)
             {
-                // Log the error
+                
                 Console.WriteLine("Error: Could not resolve IOpeningHourRepository");
-                // Handle the missing service appropriately - either throw an exception or continue without it
+               
             } 
             else 
             {
-                // Use the service
+               
                 viewModel.OpeningHours = await openingHourRepository.GetByBusinessIdAsync(id);
             }
 
@@ -448,7 +434,7 @@ namespace mvc.Controllers
 
             try
             {
-                // التحقق من اسم نشاط تجاري مكرر
+               
                 var nameExists = await DbBusiness.GetAll()
                     .AnyAsync(b => b.Id != busFromReq.Id && b.Name == busFromReq.Name);
 
@@ -459,7 +445,7 @@ namespace mvc.Controllers
                     return View("Edit", busFromReq);
                 }
 
-                // الحصول على بيانات العمل الحالية
+               
                 var businessToUpdate = await _context.Businesses.FindAsync(busFromReq.Id);
                 if (businessToUpdate == null) 
                 {
@@ -467,7 +453,6 @@ namespace mvc.Controllers
                     return NotFound("Business not found");
                 }
 
-                // التحقق من الملكية
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!businessToUpdate.OwnerId.Equals(currentUserId) && !User.IsInRole("Admin"))
                 {
@@ -475,18 +460,18 @@ namespace mvc.Controllers
                     return Forbid("You don't have permission to edit this business");
                 }
 
-                // التأكد من أن الإحداثيات لها قيم صحيحة
+              
                 if (string.IsNullOrEmpty(busFromReq.Latitude))
                 {
-                    busFromReq.Latitude = "0"; // قيمة افتراضية
+                    busFromReq.Latitude = "0"; 
                 }
                     
                 if (string.IsNullOrEmpty(busFromReq.Longitude))
                 {
-                    busFromReq.Longitude = "0"; // قيمة افتراضية
+                    busFromReq.Longitude = "0"; 
                 }
 
-                // Update properties
+              
                 businessToUpdate.Name = busFromReq.Name;
                 businessToUpdate.Longitude = busFromReq.Longitude;
                 await UpdateOpeningHoursWithoutTransaction(busFromReq.Id, busFromReq.OpeningHours);
@@ -495,7 +480,7 @@ namespace mvc.Controllers
                 await transaction.CommitAsync();
 
                 TempData["Success"] = "Business has been updated successfully";
-                // Fix redirect to use GetBusinessByUserId instead of myBusiness
+              
                 return RedirectToAction("GetBusinessByUserId", new { id = currentUserId });
             }
             catch (Exception ex)
@@ -511,14 +496,14 @@ namespace mvc.Controllers
         {
             if (openingHours == null || !openingHours.Any()) return;
 
-            // حذف الساعات القديمة
+          
             var existingHours = await _context.OpeningHours
                 .Where(h => h.BusinessId == businessId)
                 .ToListAsync();
 
             _context.OpeningHours.RemoveRange(existingHours);
 
-            // إضافة الساعات الجديدة
+           
             foreach (var hour in openingHours)
             {
                 hour.BusinessId = businessId;
@@ -559,14 +544,14 @@ namespace mvc.Controllers
                     return BadRequest("User ID is required");
                 }
                 
-                // Load all categories for the filter dropdown
+               
                 ViewBag.Categories = Dbcategory.GetAll().ToList();
                 
-                // Get total count for pagination
+               
                 int totalItems = DbBusiness.GetAll().Count(b => b.OwnerId == id);
                 int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
                 
-                // Get paginated results
+              
                 List<Business> businesses = DbBusiness.GetAll()
                     .Where(b => b.OwnerId == id)
                     .Skip((page - 1) * pageSize)
@@ -579,7 +564,7 @@ namespace mvc.Controllers
                 
                 if (businesses.Count == 0 && page == 1)
                 {
-                    // No businesses found, but still show the page
+                    
                     return View("myBusiness", new List<Business>());
                 }
                 
@@ -602,16 +587,16 @@ namespace mvc.Controllers
                     return BadRequest("User ID is required");
                 }
                 
-                // Load all categories for the filter dropdown if it's not an AJAX request
+               
                 if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
                 {
                     ViewBag.Categories = Dbcategory.GetAll().ToList();
                 }
                 
-                // Get all businesses for the user first
+               
                 var allBusinesses = DbBusiness.GetAll().Where(b => b.OwnerId == id);
                 
-                // Apply filters
+               
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     searchTerm = searchTerm.ToLower();
@@ -633,17 +618,17 @@ namespace mvc.Controllers
                     allBusinesses = allBusinesses.Where(b => b.PackageId == packageId);
                 }
                 
-                // Add category filter
+               
                 if (category != "all" && int.TryParse(category, out int categoryId))
                 {
                     allBusinesses = allBusinesses.Where(b => b.CategoryId == categoryId);
                 }
                 
-                // Calculate pagination
+                
                 int totalItems = allBusinesses.Count();
                 int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
                 
-                // Get paginated results
+                
                 var pagedBusinesses = allBusinesses
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -653,7 +638,7 @@ namespace mvc.Controllers
                 ViewBag.TotalPages = totalPages;
                 ViewBag.ItemsPerPage = pageSize;
                 
-                // If it's an AJAX request, return partial view
+               
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
                     return PartialView("_BusinessGrid", pagedBusinesses);
@@ -677,7 +662,7 @@ namespace mvc.Controllers
             return BadRequest("Invalid business ID");
         }
          
-        // Get the business directly from context to ensure we get all properties including Longitude and Latitude
+     
         Business business = await _context.Businesses
             .Include(b => b.Category)
             .Include(b => b.Owner)
@@ -689,42 +674,42 @@ namespace mvc.Controllers
             return NotFound("Business not found");
         }
          
-        // Get current user ID
+       
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
          
-        // Set the owner status
+      
         ViewBag.IsOwner = !string.IsNullOrEmpty(userId) && userId == business.OwnerId;
          
-        // Make sure business features are loaded
+        
         business.BusinessFeatures = await DbBusinessFeatures.GetAll(b => b.BusinessId == business.Id).ToListAsync();
         
-        // Get reviews for this business
+       
         var reviewRepository = HttpContext.RequestServices.GetService<IReviewRepository>();
         if (reviewRepository != null)
         {
             var reviews = await reviewRepository.GetByBusinessIdAsync(id);
              
-            // Calculate average rating
+           
             double averageRating = business.GetAverageRating();
              
-            // Calculate rating percentages
+          
             var ratingPercentages = business.GetRatingPercentages();
              
             ViewBag.AverageRating = averageRating;
             ViewBag.RatingPercentages = ratingPercentages;
         }
 
-        // Get opening hours
+       
         business.OpeningHours = await openingHourRepository.GetAll(o => o.BusinessId == business.Id).ToListAsync();
         
-        // Get owner businesses count
+       
         var ownerBusinessCount = await DbBusiness.GetAll(b => b.OwnerId == business.OwnerId).CountAsync();
         ViewBag.OwnerBusinessCount = ownerBusinessCount;
 
-        // Set the business ID for review form
+        
         ViewBag.BusinessId = id;
         
-        // Make sure we have Longitude and Latitude from the database
+       
         Console.WriteLine($"Business coordinates: Lat={business.Latitude}, Long={business.Longitude}");
          
         return View(business);

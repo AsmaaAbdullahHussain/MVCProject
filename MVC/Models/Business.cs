@@ -11,7 +11,7 @@ namespace mvc.Models
         public int Id { get; set; }
 
         [Required]
-        public string OwnerId { get; set; }  //fk from user identity
+        public string OwnerId { get; set; }  
         [ForeignKey("OwnerId")]
         public virtual ApplicationUser Owner { get; set; }
 
@@ -19,7 +19,7 @@ namespace mvc.Models
         public string Name { get; set; } 
 
         [Required]
-        public int CategoryId { get; set; } //fk from cat table
+        public int CategoryId { get; set; } 
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
 
@@ -28,8 +28,6 @@ namespace mvc.Models
 
         [Required]
         public string MainImage { get; set; }
-
-        //public List<string> Gallery { get; set; } //table Gallery (id,imgUrl,businessId)
 
         [Required]
         public string Latitude { get; set; }
@@ -40,21 +38,17 @@ namespace mvc.Models
         [Required]
         public string Address { get; set; }
 
-        //public List<string> Features { get; set; } //table  (id,describtion,bid)
-
-        //========================================================
-
+      
         [Required]
-        public BusinessType BusinessType { get; set; } = BusinessType.Regular; //enum //user can`t change it
+        public BusinessType BusinessType { get; set; } = BusinessType.Regular; 
 
-        public bool IsActive { get; set; } = true; //user can`t change it 
+        public bool IsActive { get; set; } = true; 
 
-        public DateTime? SubscriptionEndDate { get; set; }  //user can`t change it
-
-        // public List<MenuItem> MenuItems { get; set; }
+        public DateTime? SubscriptionEndDate { get; set; } 
+       
 
         [ForeignKey("PackageId")]
-        public int PackageId { get; set; } = 1; // باقة Regular المجانية افتراضيًا
+        public int PackageId { get; set; } = 1; 
         public Package Package { get; set; } 
 
        
@@ -65,7 +59,7 @@ namespace mvc.Models
         public ICollection<BusinessFeatures>? BusinessFeatures { get; set; }
         public ICollection<Checkout>? Checkout { get; set; }
 
-        // Add a method to calculate average rating
+       
         public double GetAverageRating()
         {
             if (Reviews == null || !Reviews.Any())
@@ -74,12 +68,12 @@ namespace mvc.Models
             return Math.Round(Reviews.Average(r => r.Rating), 1);
         }
 
-        // Add a method to get rating distribution
+      
         public Dictionary<int, int> GetRatingDistribution()
         {
             var distribution = new Dictionary<int, int>();
             
-            // Initialize all ratings (1-5) with zero count
+          
             for (int i = 1; i <= 5; i++)
             {
                 distribution[i] = 0;
@@ -87,8 +81,7 @@ namespace mvc.Models
             
             if (Reviews == null || !Reviews.Any())
                 return distribution;
-                
-            // Count reviews for each rating
+           
             foreach (var review in Reviews)
             {
                 distribution[review.Rating]++;
@@ -97,7 +90,6 @@ namespace mvc.Models
             return distribution;
         }
 
-        // Add a method to calculate rating percentages
         public Dictionary<int, int> GetRatingPercentages()
         {
             var distribution = GetRatingDistribution();
@@ -106,7 +98,7 @@ namespace mvc.Models
             
             if (total == 0)
             {
-                // Initialize all ratings with 0%
+               
                 for (int i = 1; i <= 5; i++)
                 {
                     percentages[i] = 0;
@@ -114,7 +106,7 @@ namespace mvc.Models
             }
             else
             {
-                // Calculate percentage for each rating
+             
                 for (int i = 1; i <= 5; i++)
                 {
                     percentages[i] = (int)Math.Round((double)distribution[i] / total * 100);

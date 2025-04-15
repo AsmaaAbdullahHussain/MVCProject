@@ -4,41 +4,43 @@
     Layout = "_AdminLayout";
 }
 
-<div class="page-title">
-    <h1>Categories Management</h1>
-    <p>Manage all business categories in the system</p>
+<div class="page-title d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Categories Management</h1>
+        <p class="text-muted">Manage all business categories in the system</p>
+    </div>
+    <a href="@Url.Action("New")" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i>Add New Category
+    </a>
 </div>
 
 <div class="card shadow-sm">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">Categories List</h5>
-            <a href="@Url.Action("New")" class="btn btn-primary">
-                <i class="fas fa-plus-circle me-1"></i> Add New Category
-            </a>
-        </div>
-    </div>
-    
-    <div class="card-body">
-        <div class="row mb-3">
+    <div class="card-header bg-white">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h5 class="card-title mb-0">All Categories</h5>
+            </div>
             <div class="col-md-6">
                 <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search categories...">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Search categories...">
                 </div>
             </div>
         </div>
-        
+    </div>
+    <div class="card-body">
         <div class="table-responsive">
-            <table id="categoriesTable" class="table table-hover">
+            <table id="categoriesTable" class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
                         <th width="60">#</th>
-                        <th width="60">Icon</th>
+                        <th width="80">Icon</th>
                         <th>Name</th>
                         <th>Features</th>
                         <th>Businesses</th>
-                        <th width="150">Actions</th>
+                        <th width="150" class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,7 +62,9 @@
                                         }
                                     </div>
                                 </td>
-                                <td>@category.Name</td>
+                                <td>
+                                    <span class="fw-medium">@category.Name</span>
+                                </td>
                                 <td>
                                     <span class="badge bg-primary rounded-pill">
                                         @(category.CategoryFeatures?.Count() ?? 0)
@@ -82,17 +86,19 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="@Url.Action("Details", new { id = category.Id })" class="btn btn-sm btn-outline-info" title="View">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="@Url.Action("Details", new { id = category.Id })" class="btn btn-sm btn-outline-info" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="@Url.Action("Edit", new { id = category.Id })" class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <a href="@Url.Action("Edit", new { id = category.Id })" class="btn btn-sm btn-outline-primary" title="Edit Category">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-outline-danger delete-btn" 
                                                 data-id="@category.Id" 
                                                 data-name="@category.Name"
-                                                title="Delete">
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal"
+                                                title="Delete Category">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -106,9 +112,9 @@
                             <td colspan="6" class="text-center py-4">
                                 <div class="py-5">
                                     <i class="fas fa-folder-open text-muted mb-3" style="font-size: 3rem;"></i>
-                                    <h5>No categories found</h5>
+                                    <h5 class="mt-3">No categories found</h5>
                                     <p class="text-muted">Create a new category to get started.</p>
-                                    <a href="@Url.Action("New")" class="btn btn-primary">
+                                    <a href="@Url.Action("New")" class="btn btn-primary mt-2">
                                         <i class="fas fa-plus-circle me-1"></i> Add New Category
                                     </a>
                                 </div>
@@ -122,18 +128,21 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                </div>
                 <p>Are you sure you want to delete the category <strong id="categoryName"></strong>?</p>
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    This will also remove all associated features. Businesses in this category will need reassignment.
+                    This will also delete all associated features. Businesses in this category will need reassignment.
                 </div>
             </div>
             <div class="modal-footer">
@@ -149,53 +158,79 @@
 @section Styles {
     <style>
         .category-icon-wrapper {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
             background-color: #f8f9fa;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
         
         .category-icon-wrapper i {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             color: var(--primary-color);
         }
         
         .table > tbody > tr {
             vertical-align: middle;
+            transition: all 0.2s ease;
         }
         
-        /* Custom popover styling */
+        .table > tbody > tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .table > tbody > tr:hover .category-icon-wrapper {
+            background-color: rgba(52, 152, 219, 0.1);
+            transform: scale(1.05);
+        }
+        
+        /* Enhanced popover styling */
         .popover {
             max-width: 300px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+            border: none;
+            border-radius: 10px;
         }
         
         .popover-body {
-            padding: 0.75rem;
-            font-size: 0.875rem;
+            padding: 1rem;
+            font-size: 0.925rem;
+            color: #333;
         }
         
-        /* Enhance search input */
-        .input-group {
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: none;
+            border-radius: 0.5rem;
         }
         
-        /* Add initial animation for success messages */
-        .alert-success {
-            animation: fadeInDown 0.5s ease-out;
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1rem 1.25rem;
         }
         
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        #searchInput {
+            transition: all 0.3s ease;
+        }
+        
+        #searchInput:focus {
+            box-shadow: none;
+            border-color: var(--primary-color);
+        }
+        
+        .page-title h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-title p {
+            color: #6c757d;
+            margin-bottom: 0;
         }
     </style>
 }
@@ -225,12 +260,14 @@
             });
             
             // Initialize popovers for features list
-            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-            popoverTriggerList.map(function (popoverTriggerEl) {
-                return new bootstrap.Popover(popoverTriggerEl, {
+            const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+            popoverTriggerList.forEach(popoverTriggerEl => {
+                new bootstrap.Popover(popoverTriggerEl, {
                     container: 'body',
                     trigger: 'click',
-                    title: 'Features'
+                    title: 'Features',
+                    html: true,
+                    placement: 'auto'
                 });
             });
             
@@ -254,9 +291,6 @@
                 
                 $('#categoryName').text(name);
                 $('#confirmDelete').attr('href', '@Url.Action("Delete")?id=' + id);
-                
-                const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-                modal.show();
             });
             
             // Show toast messages if provided via TempData

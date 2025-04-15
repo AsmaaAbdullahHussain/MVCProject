@@ -8,7 +8,7 @@
     bool isAdmin = User.IsInRole("Admin");
     bool isAuthenticated = User.Identity?.IsAuthenticated ?? false;
 
-    // دالة مساعدة لتنسيق TimeSpan
+ 
     string FormatTimeSpan(TimeSpan timeSpan)
     {
         DateTime dateTime = DateTime.Today.Add(timeSpan);
@@ -16,7 +16,7 @@
     }
 }
 
-<!-- Custom styles for business details page -->
+
 <style>
     /* Hero Section */
     .business-hero {
@@ -1045,14 +1045,14 @@
 </div>
 
 @section Scripts {
-    <!-- Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+   
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDw6thoxZITqFU-HsZMnUu6p5hy3xc-gv0&callback=initMap" async defer></script>
     
-    <!-- SignalR -->
+ 
     <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
     
     <script>
-        // Map initialization
+     
         function initMap() {
             const lat = parseFloat('@Model.Latitude');
             const lng = parseFloat('@Model.Longitude');
@@ -1088,32 +1088,32 @@
             });
         }
         
-        // SignalR connection for real-time reviews
+        
         document.addEventListener('DOMContentLoaded', function() {
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl('/reviewHub')
                 .build();
                 
-            // Start the connection
+           
             connection.start().catch(err => console.error('Error connecting to SignalR:', err));
             
-            // Handle incoming reviews
+            
             connection.on('NewReviewArrived', function(review) {
                 if (review.businessId === @Model.Id) {
-                    // Refresh reviews section
+              
                     fetch(`/Review/GetReviewsPartial?businessId=@Model.Id`)
                         .then(response => response.text())
                         .then(html => {
                             document.getElementById('reviewsContainer').innerHTML = html;
                             
-                            // Reattach event handlers to new elements
+                    
                             setupReviewActions();
                         })
                         .catch(error => console.error('Error fetching reviews:', error));
                 }
             });
             
-            // Review form submission
+          
             const reviewForm = document.getElementById('reviewForm');
             if (reviewForm) {
                 reviewForm.addEventListener('submit', function(e) {
@@ -1128,16 +1128,16 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Success toast
+                           
                             showToast('success', 'Review Submitted', data.message);
                             
-                            // Reset form
+                       
                             reviewForm.reset();
                             
-                            // Additional UI feedback (like scrolling to reviews)
+                            
                             document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
                         } else {
-                            // Error toast
+                           
                             showToast('error', 'Error', data.message);
                         }
                     })
@@ -1148,9 +1148,9 @@
                 });
             }
             
-            // Setup review actions (delete, mark as read)
+          
             function setupReviewActions() {
-                // Mark review as read
+               
                 document.querySelectorAll('.mark-read').forEach(button => {
                     button.addEventListener('click', function() {
                         const reviewId = this.getAttribute('data-id');
@@ -1165,7 +1165,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                this.remove(); // Remove the button after successful marking
+                                this.remove(); 
                                 showToast('success', 'Success', 'Review marked as read');
                             } else {
                                 showToast('error', 'Error', data.message || 'Failed to mark review as read');
@@ -1178,17 +1178,17 @@
                     });
                 });
                 
-                // Delete review
+
                 document.querySelectorAll('.delete-review').forEach(button => {
                     button.addEventListener('click', function() {
                         const reviewId = this.getAttribute('data-id');
                         const businessId = this.getAttribute('data-business-id');
                         
-                        // Show confirm modal
+                      
                         const modal = new bootstrap.Modal(document.getElementById('deleteReviewModal'));
                         modal.show();
                         
-                        // Set up delete action
+                        
                         document.getElementById('confirmDeleteReview').onclick = function() {
                             fetch('/Review/Delete', {
                                 method: 'POST',
@@ -1199,7 +1199,7 @@
                             })
                             .then(response => {
                                 if (response.ok) {
-                                    // Refresh reviews section
+                                  
                                     fetch(`/Review/GetReviewsPartial?businessId=${businessId}`)
                                         .then(response => response.text())
                                         .then(html => {
@@ -1222,10 +1222,10 @@
                 });
             }
             
-            // Initial setup
+           
             setupReviewActions();
             
-            // Share functionality
+          
             document.querySelector('.share-business').addEventListener('click', function() {
                 const url = this.getAttribute('data-share-url');
                 
@@ -1237,7 +1237,7 @@
                     })
                     .catch(error => console.error('Error sharing:', error));
                 } else {
-                    // Fallback for browsers that don't support Web Share API
+                  
                     const tempInput = document.createElement('input');
                     document.body.appendChild(tempInput);
                     tempInput.value = url;
@@ -1249,7 +1249,7 @@
                 }
             });
             
-            // Favorite button functionality
+            
             const favoriteButton = document.querySelector('.favorite-business');
             if (favoriteButton) {
                 favoriteButton.addEventListener('click', function() {
@@ -1289,7 +1289,7 @@
                     });
                 });
                 
-                // Check if business is already a favorite
+               
                 fetch(`/Favorite/IsFavorite?businessId=${favoriteButton.getAttribute('data-id')}`)
                     .then(response => response.json())
                     .then(data => {
@@ -1303,7 +1303,7 @@
                     .catch(error => console.error('Error checking favorite status:', error));
             }
             
-            // Toast notification function
+         
             function showToast(type, title, message) {
                 const toastContainer = document.createElement('div');
                 toastContainer.className = 'position-fixed top-0 end-0 p-3';

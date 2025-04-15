@@ -1,10 +1,4 @@
-/**
- * This file helps debug business filtering issues
- * Add to your page with: <script src="/js/business-filters-debug.js"></script>
- */
-
 function debugBusinessFilters() {
-    // Get all business cards
     const cards = document.querySelectorAll('.business-card');
     
     console.log("=== BUSINESS CARDS DATA ATTRIBUTES ===");
@@ -18,7 +12,6 @@ function debugBusinessFilters() {
         console.log("-----");
     });
     
-    // Get all filters
     const categoryFilter = document.getElementById('categoryFilter');
     const packageFilter = document.getElementById('packageFilter');
     const statusFilter = document.getElementById('statusFilter');
@@ -57,11 +50,9 @@ function debugBusinessFilters() {
     return "Debug info logged to console. Check browser developer tools.";
 }
 
-// Run automatically when included
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Business filters debug script loaded");
     
-    // Add debug button to page
     const debugBtn = document.createElement('button');
     debugBtn.textContent = "Debug Filters";
     debugBtn.className = "btn btn-secondary mt-3";

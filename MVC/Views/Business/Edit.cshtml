@@ -15,7 +15,7 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger rounded p-2 mb-3"></div>
                 
                 <div class="row">
-                    <!-- Left Column -->
+                   
                     <div class="col-md-6">
                         <div class="card mb-3">
                             <div class="card-header bg-light">
@@ -62,7 +62,7 @@
                         </div>
                     </div>
                     
-                    <!-- Right Column -->
+                    
                     <div class="col-md-6">
                         <div class="card mb-3">
                             <div class="card-header bg-light">
@@ -103,7 +103,7 @@
                     </div>
                 </div>
      
-                <!-- Features Section -->
+                
                 <div class="card mb-3">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Business Features</h5>
@@ -155,7 +155,7 @@
                     </div>
                 </div>
                 
-                <!-- Business Hours Section -->
+               
                 <div class="card mb-3">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">Business Hours</h5>
@@ -198,7 +198,7 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="form-check d-flex justify-content-center">
-                                                    @* Simplified checkbox logic *@
+                                                   
                                                     <input class="form-check-input opening-hour-checkbox" type="checkbox" 
                                                            id="isOpen_@i"
                                                            checked="checked" />
@@ -214,7 +214,7 @@
                     </div>
                 </div>
                 
-                <!-- Buttons -->
+             
                 <div class="d-flex justify-content-between mt-4">
                     <a asp-action="GetAll" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Back to List
@@ -233,7 +233,7 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script>
-        // Handle image preview
+     
         $(document).ready(function() {
             $("#previewImageBtn").click(function() {
                 const imageUrl = $("#MainImage").val();
@@ -245,13 +245,13 @@
                 }
             });
             
-            // Check if there's already an image URL and show it
+          
             if ($("#MainImage").val()) {
                 $("#imagePreview").attr("src", $("#MainImage").val());
                 $("#imagePreviewContainer").show();
             }
             
-            // Dynamic features handling
+            
             $("#addFeatureBtn").click(function() {
                 const template = $("#featureTemplate").html();
                 const featuresCount = $(".feature-row").length;
@@ -259,17 +259,16 @@
                 $("#featuresContainer").append(newFeature);
             });
             
-            // Remove feature button
+           
             $(document).on("click", ".remove-feature-btn", function() {
                 $(this).closest(".feature-row").remove();
             });
         });
         
-        // Initialize Leaflet Map with better error handling
         let map, marker;
         function initMap() {
             try {
-                // Get map container element
+               
                 const mapElement = document.getElementById('mapid');
                 if (!mapElement) {
                     console.error("Map container element not found");
@@ -280,7 +279,7 @@
                 const lng = parseFloat($("#longitude-input").val()) || 36.2765;  // if values are invalid
                 const position = [lat, lng];
                 
-                // Initialize map
+                
                 map = L.map('mapid').setView(position, 14);
                 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -290,7 +289,7 @@
                 
                 marker = L.marker(position, { draggable: true }).addTo(map);
                 
-                // Force a map redraw after a short delay to handle any rendering issues
+               
                 setTimeout(function() {
                     map.invalidateSize();
                 }, 100);
@@ -301,14 +300,14 @@
                     $("#longitude-input").val(position.lng.toFixed(6));
                 });
                 
-                // Add click functionality to set position
+                
                 map.on('click', function(e) {
                     marker.setLatLng(e.latlng);
                     $("#latitude-input").val(e.latlng.lat.toFixed(6));
                     $("#longitude-input").val(e.latlng.lng.toFixed(6));
                 });
                 
-                // Update marker when lat/lng fields change
+                
                 $("#latitude-input, #longitude-input").change(function() {
                     try {
                         const lat = parseFloat($("#latitude-input").val()) || 33.5138;
@@ -328,23 +327,22 @@
             }
         }
         
-        // Initialize map after DOM is fully loaded
         $(document).ready(function() {
             // Initialize the map
             setTimeout(function() {
                 initMap();
             }, 200);
             
-            // Fixed event handler for business hour checkboxes
+           
             $(".opening-hour-checkbox").change(function() {
                 const index = this.id.split('_')[1];
                 const isChecked = $(this).prop('checked');
                 $("#isOpenValue_" + index).val(isChecked ? "true" : "false");
             });
             
-            // Add form validation check before submit
+            
             $("#editBusinessForm").submit(function(event) {
-                // Basic validation for required fields
+              
                 var name = $("#Name").val();
                 if (!name.trim()) {
                     alert("Business name is required");
@@ -352,7 +350,7 @@
                     return false;
                 }
                 
-                // Ensure coordinates are valid numbers
+                
                 var lat = parseFloat($("#latitude-input").val());
                 var lng = parseFloat($("#longitude-input").val());
                 if (isNaN(lat) || isNaN(lng)) {
@@ -365,23 +363,20 @@
             });
 
             function updateIsOpenValue(openingHours) {
-    // الحصول على الوقت الحالي
+   
     const currentTime = new Date();
     const currentHour = currentTime.getHours();
     const currentMinute = currentTime.getMinutes();
 
-    // افتراضًا أن openingHours هو مصفوفة تحتوي على ساعات العمل 
-    // مثلا: [{ day: 'Monday', opening: '09:00', closing: '18:00' }]
     
     let isOpen = false;
 
-    // التحقق من ساعات العمل اليومية (هنا نفترض أن ساعات العمل هي ليوم معين)
     openingHours.forEach(hour => {
-        // تحويل ساعات الافتتاح والإغلاق إلى وقت بالـ 24 ساعة
+    
         const [openHour, openMinute] = hour.opening.split(':').map(num => parseInt(num, 10));
         const [closeHour, closeMinute] = hour.closing.split(':').map(num => parseInt(num, 10));
 
-        // التحقق إذا كان الوقت الحالي ضمن ساعات العمل
+     
         if (currentHour > openHour || (currentHour === openHour && currentMinute >= openMinute)) {
             if (currentHour < closeHour || (currentHour === closeHour && currentMinute <= closeMinute)) {
                 isOpen = true;
@@ -389,21 +384,25 @@
         }
     });
 
-    // إرجاع القيمة IsOpen بناءً على الوقت الحالي
+
     return isOpen;
 }
 
-// مثال للاستخدام:
+
 const openingHours = [
     { day: 'Monday', opening: '09:00', closing: '18:00' },
     { day: 'Tuesday', opening: '09:00', closing: '18:00' },
-    // يمكنك إضافة المزيد من الأيام
+    { day: 'Wednesday', opening: '09:00', closing: '18:00' },
+    { day: 'Thursday', opening: '09:00', closing: '18:00' },
+    { day: 'Friday', opening: '09:00', closing: '18:00' },
+    { day: 'Saturday', opening: '10:00', closing: '16:00' },
+    { day: 'Sunday', opening: 'Closed', closing: 'Closed' }
 ];
 
 const isOpen = updateIsOpenValue(openingHours);
 console.log(isOpen ? "The business is open." : "The business is closed.");
 
-            // Initialize checkboxes for business hours
+         
             for (let i = 0; i < 7; i++) {
                 updateIsOpenValue(i);
             }

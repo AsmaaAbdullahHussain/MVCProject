@@ -1,8 +1,6 @@
-/**
- * This file provides a consistent way to load SignalR from CDN with fallback
- */
+
 (function() {
-    // First check if SignalR is already loaded
+    
     if (typeof signalR !== 'undefined') {
         console.log('SignalR is already loaded');
         return;
@@ -11,7 +9,7 @@
     console.log('Loading SignalR from CDN...');
     
     const loadSignalR = () => {
-        // Load from CDN (version-specific for stability without integrity)
+      
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/@microsoft/signalr@6.0.10/dist/browser/signalr.min.js';
         script.crossOrigin = 'anonymous';
@@ -19,7 +17,7 @@
         script.onload = function() {
             console.log('SignalR loaded successfully from CDN');
             
-            // Check if signalR is actually defined
+           
             if (typeof signalR !== 'undefined') {
                 document.dispatchEvent(new Event('signalRLoaded'));
             } else {
@@ -38,7 +36,7 @@
     
     const loadFromAlternativeCDN = () => {
         const script = document.createElement('script');
-        // Try unpkg as alternative
+      
         script.src = 'https://unpkg.com/@microsoft/signalr@6.0.10/dist/browser/signalr.min.js';
         
         script.onload = function() {
@@ -62,7 +60,7 @@
     const loadInlineSignalR = () => {
         console.log('Loading minimal inline SignalR implementation...');
         
-        // Create a minimal version of SignalR that implements just what we need
+      
         window.signalR = {
             HubConnectionBuilder: function() {
                 return {
@@ -107,7 +105,6 @@
         `;
         document.body.appendChild(errorDiv);
         
-        // Hide after 10 seconds
         setTimeout(() => {
             if (document.body.contains(errorDiv)) {
                 errorDiv.classList.add('fade');
@@ -116,6 +113,6 @@
         }, 10000);
     };
     
-    // Start loading
+   
     loadSignalR();
 })();

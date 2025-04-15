@@ -11,7 +11,7 @@ namespace mvc.ViewModels
 
         [Unique] 
         public string Name { get; set; }
-        [Url]
+       
         public string? Icon { get; set; }
 
         public List<FeatureViewModel> Features { get; set; } = new List<FeatureViewModel>();

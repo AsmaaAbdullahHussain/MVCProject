@@ -17,14 +17,10 @@ namespace mvc.Models
        
         public List<CategoryFeatures>? CategoryFeatures { get; set; } 
 
-        // Navigation Properties
+       
 
         public ICollection<Business>? Businesses { get; set; }
 
-        //public Category()
-        //{
-        //    DefaultFeatures = new List<string>();
-        //    Businesses = new HashSet<Business>();
-        //}
+      
     }
 }

@@ -312,7 +312,6 @@
             transform: translateY(0);
         }
 
-    /* Responsive adjustments */
     @@media (max-width: 768px) {
         .form-grid {
             grid-template-columns: 1fr;
@@ -342,7 +341,7 @@
             height: 46px;
         }
 
-    /* Feature selection styles */
+   
     .features-panel {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -405,7 +404,7 @@
         margin-top: 20px;
     }
 
-    /* Business Hours styles */
+   
     .opening-hours-container {
         margin-top: 15px;
     }
@@ -476,7 +475,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-    /* Enhanced validation styles */
+    
     .required-field::after {
         content: '*';
         color: #dc3545;
@@ -537,7 +536,7 @@
             <p>Showcase your business to thousands of potential customers</p>
         </div>
 
-        <!-- Add validation summary at the top -->
+       
         <div id="validationSummary" class="validation-summary" style="display: none;">
             <h4><i class="fas fa-exclamation-triangle mr-2"></i> Please correct the following issues:</h4>
             <ul id="validationList"></ul>
@@ -546,7 +545,7 @@
         <form asp-action="Save" method="post" id="businessForm" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
 
-            <!-- Basic Information Section -->
+           
             <div class="form-section">
                 <h2 class="form-section-title">
                     <i class="fas fa-info-circle"></i>
@@ -587,7 +586,7 @@
                 </div>
             </div>
 
-            <!-- Features Section (MOVED UP) -->
+           
             <div class="form-section">
                 <h2 class="form-section-title">
                     <i class="fas fa-list-ul"></i>
@@ -605,7 +604,7 @@
                                 <div class="text-muted" id="noCategorySelected">
                                     Please select a business category to see available features.
                                 </div>
-                                <!-- Category features will be loaded dynamically -->
+                               
                             </div>
                         </div>
 
@@ -628,7 +627,7 @@
                 </div>
             </div>
 
-            <!-- Location Section -->
+          
             <div class="form-section">
                 <h2 class="form-section-title">
                     <i class="fas fa-map-marker-alt"></i>
@@ -673,7 +672,7 @@
                 </div>
             </div>
 
-            <!-- Business Hours Section -->
+           
             <div class="form-section">
                 <h2 class="form-section-title">
                     <i class="fas fa-clock"></i>
@@ -741,7 +740,7 @@
                 </div>
             </div>
 
-            <!-- Media Section -->
+           
             <div class="form-section">
                 <h2 class="form-section-title">
                     <i class="fas fa-image"></i>
@@ -779,21 +778,21 @@
 </div>
 
 @section Scripts {
-    <!-- Load jQuery first (though it should be in _Layout.cshtml) -->
+   
     <script>
-        // Check if jQuery is already loaded, if not, load it
+      
         if (typeof jQuery === 'undefined') {
             document.write('<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"><\/script>');
         }
     </script>
 
-    <!-- Now load the dependent libraries -->
+  
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        // Wait for jQuery and make sure it's loaded
+       
         window.addEventListener('load', function() {
             if (typeof jQuery !== 'undefined') {
                 initializeForm();
@@ -806,13 +805,13 @@
         function initializeForm() {
             console.log("Document ready - initializing business form");
 
-            // Fix for Select2
+           
             try {
                 if ($.fn.select2) {
                     $('.category-select').select2({
                         placeholder: "Select a category",
                         allowClear: true,
-                        width: '100%' // Force 100% width
+                        width: '100%' 
                     });
                     console.log("Select2 initialized successfully");
                 } else {
@@ -822,7 +821,7 @@
                 console.error("Failed to initialize Select2:", error);
             }
 
-            // =================== MAP FUNCTIONALITY ===================
+          
             try {
                 if (typeof L === 'undefined') {
                     console.error("Leaflet library not loaded");
@@ -830,13 +829,13 @@
                 }
 
                 console.log("Initializing map...");
-                // Make sure the map container exists
+                
                 if (!document.getElementById('map')) {
                     console.error('Map container not found');
                     return;
                 }
 
-                // Initialize map with improved search - set to a default location in Jordan
+             
                 var map = L.map('map').setView([31.9522, 35.2332], 13);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -844,20 +843,20 @@
                     attribution: '© OpenStreetMap contributors'
                 }).addTo(map);
 
-                // Add a draggable marker
+               
                 var marker = L.marker([31.9522, 35.2332], { draggable: true }).addTo(map);
 
-                // Update coordinates when marker is dragged
+               
                 marker.on('dragend', function(e) {
                     var position = marker.getLatLng();
                     $('#latInput').val(position.lat.toFixed(6));
                     $('#lngInput').val(position.lng.toFixed(6));
 
-                    // Reverse geocode to get address
+                 
                     reverseGeocode(position.lat, position.lng);
                 });
 
-                // Add geocoder control with better error handling
+                
                 if (typeof L.Control.Geocoder !== 'undefined') {
                     var geocoder = L.Control.geocoder({
                         defaultMarkGeocode: false
@@ -865,13 +864,13 @@
                         try {
                             var center = e.geocode.center;
 
-                            // Update map view
+                           
                             map.setView(center, 15);
 
-                            // Update marker position
+                           
                             marker.setLatLng(center);
 
-                            // Update form fields
+                           
                             $('#latInput').val(center.lat.toFixed(6));
                             $('#lngInput').val(center.lng.toFixed(6));
                             $('#addressInput').val(e.geocode.name);
@@ -881,7 +880,7 @@
                     }).addTo(map);
                 }
 
-                // Better search implementation
+              
                 $('#mapSearchInput').on('keydown', function(e) {
                     if (e.keyCode === 13) { // Enter key
                         e.preventDefault();
@@ -897,12 +896,12 @@
                     }
                 });
 
-                // Fix map container size issues
+               
                 setTimeout(function() {
                     map.invalidateSize();
                 }, 500);
 
-                // Improved reverse geocoding function
+              
                 function reverseGeocode(lat, lng) {
                     fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
                         .then(response => response.json())
@@ -920,9 +919,7 @@
                 console.error("Failed to initialize map:", mapError);
             }
 
-            // =================== BUSINESS FEATURES LOGIC ===================
-
-            // Fix category features loading
+            
             $('#categorySelect').on('change', function() {
                 var categoryId = $(this).val();
                 if (categoryId) {
@@ -932,7 +929,7 @@
                 }
             });
 
-            // Load features with proper error handling
+           
             function loadCategoryFeatures(categoryId) {
                 $.ajax({
                     url: '/Category/GetCategoryFeatures?categoryId=' + categoryId,
@@ -940,13 +937,13 @@
                     dataType: 'json',
                     success: displayCategoryFeatures,
                     error: function() {
-                        // Fallback with sample features
+                      
                         displayCategoryFeatures(getSampleFeatures(categoryId));
                     }
                 });
             }
 
-            // Sample features as fallback
+          
             function getSampleFeatures(categoryId) {
                 const featuresByCategory = {
                     "1": [
@@ -970,7 +967,7 @@
                 ];
             }
 
-            // Fixed display function
+           
             function displayCategoryFeatures(features) {
                 if (!features || features.length === 0) {
                     $('#categoryFeaturesPanel').html('<div class="text-muted">No features available for this category.</div>');
@@ -993,13 +990,13 @@
 
                 $('#categoryFeaturesPanel').html(featuresHtml);
 
-                // Use direct event binding
+              
                 $('.feature-checkbox input[type="checkbox"]').on('change', function() {
                     $(this).closest('.feature-checkbox').toggleClass('active', this.checked);
                 });
             }
 
-            // Fix custom features
+         
             var customFeatureIndex = 1;
 
             $('#addFeatureBtn').click(function() {
@@ -1014,7 +1011,7 @@
                 customFeatureIndex++;
             });
 
-            // Improved feature removal
+           
             $(document).on('click', '.remove-feature', function() {
                 if ($('.feature-item').length > 1) {
                     $(this).closest('.feature-item').remove();
@@ -1023,9 +1020,7 @@
                 }
             });
 
-            // =================== FORM SUBMISSION IMPROVEMENTS ===================
-
-            // Fixed business hours functionality
+          
             $('.closed-checkbox').change(function() {
                 var dayRow = $(this).closest('.day-row');
                 var isChecked = this.checked;
@@ -1040,34 +1035,32 @@
                 }
             });
 
-            // Set default business hours
+            
             $('.open-time').val('09:00');
             $('.close-time').val('17:00');
 
-            // Fix form submission with proper feature processing
+       
             $('#businessForm').submit(function(e) {
                 try {
                     console.log("Form submission started");
 
-                    // التحقق من صحة البيانات المدخلة
+                
                     if (!validateForm()) {
                         console.error("Form validation failed");
                         e.preventDefault();
                         return false;
                     }
 
-                    // معالجة الميزات والساعات قبل الإرسال
                     processFeatures();
                     processBusinessHours();
 
-                    // إضافة رسالة للمستخدم
                     showProcessingMessage();
 
                     console.log("Form data is valid, submitting to server");
                     return true;
                 } catch (err) {
                     console.error("Form submission error:", err);
-                    alert("هناك خطأ في البيانات المدخلة. يرجى التحقق والمحاولة مرة أخرى.");
+                    alert("An error occurred while processing your request. Please try again.");
                     e.preventDefault();
                     return false;
                 }
@@ -1094,12 +1087,12 @@
                 $('body').append(processingDiv);
             }
 
-            // Enhanced validation function
+            
             function validateForm() {
                 var isValid = true;
                 var errors = [];
 
-                // Validate business name
+                
                 var nameField = $('#Name');
                 if (!nameField.val()) {
                     nameField.addClass('input-validation-error');
@@ -1113,7 +1106,7 @@
                     nameField.removeClass('input-validation-error');
                 }
 
-                // Validate category
+                
                 var categoryField = $('#categorySelect');
                 if (!categoryField.val()) {
                     categoryField.closest('.select2-container').addClass('input-validation-error');
@@ -1123,7 +1116,7 @@
                     categoryField.closest('.select2-container').removeClass('input-validation-error');
                 }
 
-                // Validate description
+               
                 var descField = $('#Description');
                 if (!descField.val()) {
                     descField.addClass('input-validation-error');
@@ -1137,7 +1130,7 @@
                     descField.removeClass('input-validation-error');
                 }
 
-                // Validate address
+             
                 var addressField = $('#addressInput');
                 if (!addressField.val()) {
                     addressField.addClass('input-validation-error');
@@ -1147,7 +1140,6 @@
                     addressField.removeClass('input-validation-error');
                 }
 
-                // Validate coordinates
                 var latField = $('#latInput');
                 var lngField = $('#lngInput');
                 if (!latField.val() || !lngField.val()) {
@@ -1160,7 +1152,7 @@
                     lngField.removeClass('input-validation-error');
                 }
 
-                // Validate image URL
+          
                 var imageField = $('#imageInput');
                 if (!imageField.val()) {
                     imageField.addClass('input-validation-error');
@@ -1170,7 +1162,7 @@
                     imageField.removeClass('input-validation-error');
                 }
 
-                // Show validation summary if there are errors
+               
                 if (!isValid) {
                     $('#validationList').empty();
                     errors.forEach(function(error) {
@@ -1178,7 +1170,7 @@
                     });
                     $('#validationSummary').show();
 
-                    // Scroll to validation summary
+                  
                     $('html, body').animate({
                         scrollTop: $('#validationSummary').offset().top - 100
                     }, 300);
@@ -1189,7 +1181,7 @@
                 return isValid;
             }
 
-            // Add tooltip functionality for info icons
+         
             $('.field-info-icon').hover(function() {
                 var tooltip = $('<div class="validation-tooltip"></div>')
                     .text($(this).attr('title'))
@@ -1207,13 +1199,13 @@
                 $(this).data('tooltip').remove();
             });
 
-            // Fixed feature processing
+           
             function processFeatures() {
-                // Combine category and custom features
+                
                 var allFeatures = [];
                 var featureIndex = 0;
 
-                // Get selected category features
+                
                 $('.feature-checkbox input[type="checkbox"]:checked').each(function() {
                     var featureName = $(this).siblings('input[type="hidden"]').val();
 
@@ -1228,7 +1220,7 @@
                     }
                 });
 
-                // Get custom features
+                
                 $('.feature-input').each(function() {
                     if ($(this).val()) {
                         $('<input>').attr({
@@ -1241,26 +1233,26 @@
                     }
                 });
 
-                // Remove old inputs to prevent duplicates
+               
                 $('input[name^="CategoryFeatures"]').remove();
                 $('input[name^="CustomFeatures"]').remove();
             }
 
-            // Fixed business hours processing
+           
             function processBusinessHours() {
                 $('.closed-checkbox').each(function() {
                     var dayRow = $(this).closest('.day-row');
                     var isClosed = this.checked;
 
                     if (isClosed) {
-                        // If closed, disable the inputs and clear their values for submission
+                        
                         dayRow.find('.time-select').prop('disabled', true);
                         dayRow.find('.is-closed-input').val("true");
                     }
                 });
             }
 
-            // Fix image preview
+          
             $('#imageInput').on('input', function() {
                 var imageUrl = $(this).val();
                 if (imageUrl) {
@@ -1272,7 +1264,7 @@
                 }
             });
 
-            // Load initial features if category is selected
+           
             var initialCategory = $('#categorySelect').val();
             if (initialCategory) {
                 loadCategoryFeatures(initialCategory);

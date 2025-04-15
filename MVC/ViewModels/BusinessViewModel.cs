@@ -34,27 +34,27 @@ namespace mvc.ViewModels
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
 
-        // For category selection dropdown
+    
         public List<Category> categories { get; set; } = new List<Category>();
 
-        // For duplicate name checking
+      
         public List<string> businessesNameList { get; set; } = new List<string>(); 
 
-        // For business features (combined from category and custom features)
+       
         public List<BusinessFeatures> BusinessFeatures { get; set; } = new List<BusinessFeatures>();
 
-        // For business hours
+        
         public List<OpeningHour> OpeningHours { get; set; } = new List<OpeningHour>();
         
-        public bool IsActive { get; set; } = false; //user can`t change it
+        public bool IsActive { get; set; } = false;
         
         public DateTime? SubscriptionEndDate { get; set; }
 
-        // إضافة خاصية للباقة
-        public int PackageId { get; set; } = 1; // افتراضيًا الباقة المجانية
+       
+        public int PackageId { get; set; } = 1; 
         public BusinessType? BusinessType { get; set; } = Enums.BusinessType.Regular;
 
-        // إضافة قائمة الباقات للعرض في النموذج (اختياري)
+       
         public List<Package>? Packages { get; set; }
     }
 }

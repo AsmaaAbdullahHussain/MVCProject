@@ -33,7 +33,7 @@ namespace mvc.Models
         public Business? Business { get; set; }
         public Package? Package { get; set; }
 
-        // Navigation Properties
+       
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }
 

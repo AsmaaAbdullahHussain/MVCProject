@@ -29,20 +29,19 @@ namespace mvc.Controllers
                 string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    TempData["Error"] = "يجب تسجيل الدخول لعرض المفضلة";
+                    TempData["Error"] = "You must login to view your favorites list";
                     return RedirectToAction("Login", "Account");
                 }
 
                 var favorites = await _favoriteRepository.GetUserFavoritesAsync(userId);
                 
-                // عرض عدد المفضلة في ViewBag
                 ViewBag.FavoritesCount = favorites.Count();
 
                 return View(favorites);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "حدث خطأ أثناء جلب المفضلة: " + ex.Message;
+                TempData["Error"] = "Error while fetching favorites: " + ex.Message;
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -53,7 +52,7 @@ namespace mvc.Controllers
         {
             if (model == null || model.BusinessId <= 0)
             {
-                return Json(new { success = false, message = "طلب غير صالح" });
+                return Json(new { success = false, message = "Invalid request" });
             }
 
             try
@@ -61,25 +60,23 @@ namespace mvc.Controllers
                 string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Json(new { success = false, message = "يجب تسجيل الدخول أولاً" });
+                    return Json(new { success = false, message = "You must login first" });
                 }
 
-                // التحقق من وجود العمل
                 bool businessExists = await _businessRepository.IsBusinessExistByIdAsync(model.BusinessId);
                 if (!businessExists)
                 {
-                    return Json(new { success = false, message = "العمل التجاري غير موجود" });
+                    return Json(new { success = false, message = "Business does not exist" });
                 }
 
-                // تبديل حالة المفضلة
                 bool isFavorite = await _favoriteRepository.ToggleFavoriteAsync(userId, model.BusinessId);
-                string message = isFavorite ? "تمت إضافة العمل للمفضلة" : "تمت إزالة العمل من المفضلة";
+                string message = isFavorite ? "Business added to favorites" : "Business removed from favorites";
                 
                 return Json(new { success = true, isFavorite, message });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "حدث خطأ: " + ex.Message });
+                return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
 
@@ -113,17 +110,17 @@ namespace mvc.Controllers
                 string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return Json(new { success = false, message = "يجب تسجيل الدخول أولاً" });
+                    return Json(new { success = false, message = "You must login first" });
                 }
 
                 await _favoriteRepository.RemoveAllUserFavoritesAsync(userId);
                 
-                TempData["Success"] = "تم مسح جميع المفضلة بنجاح";
+                TempData["Success"] = "All favorites were successfully removed";
                 return RedirectToAction(nameof(MyFavorites));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "حدث خطأ أثناء مسح المفضلة: " + ex.Message;
+                TempData["Error"] = "Error while removing favorites: " + ex.Message;
                 return RedirectToAction(nameof(MyFavorites));
             }
         }

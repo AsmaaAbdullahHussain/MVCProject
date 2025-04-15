@@ -8,7 +8,6 @@ namespace mvc.Models.Authorize
         [Required]
         public string Address { get; set; }
         
-        // Añadimos la propiedad RegisterDate
         public DateTime RegisterDate { get; set; } = DateTime.UtcNow;
     }
 }

@@ -26,7 +26,6 @@ namespace mvc.Hubs
             _context = context;
         }
 
-       
         public async Task<List<AdminConversationViewModel>> GetAdminConversations()
         {
             var currentUserId = Context.UserIdentifier;
@@ -52,7 +51,6 @@ namespace mvc.Hubs
                 .ToListAsync();
         }
 
-       
         public async Task<List<UserConversationDto>> GetUserConversations()
         {
             var currentUserId = Context.UserIdentifier;
@@ -66,7 +64,7 @@ namespace mvc.Hubs
                 .Select(c => new UserConversationDto
                 {
                     Id = c.Id,
-                    AdminName = c.Admin != null ? c.Admin.UserName : "الدعم الفني",
+                    AdminName = c.Admin != null ? c.Admin.UserName : "Technical Support",
                     LastMessage = c.Messages
                                  .OrderByDescending(m => m.SentAt)
                                  .Select(m => m.Content)
@@ -79,7 +77,6 @@ namespace mvc.Hubs
                 .ToListAsync();
         }
 
-      
         public async Task<List<ChatMessageViewModel>> GetConversationMessages(int conversationId)
         {
             var currentUserId = Context.UserIdentifier;
@@ -89,7 +86,6 @@ namespace mvc.Hubs
 
             var isAdmin = await IsCurrentUserAdmin();
                 
-            
             var conversation = await _context.Conversations
                 .FirstOrDefaultAsync(c => c.Id == conversationId);
                 
@@ -99,7 +95,6 @@ namespace mvc.Hubs
                 return new List<ChatMessageViewModel>();
             }
 
-           
             var unreadMessages = await _context.ChatMessages
                 .Where(m => m.ConversationId == conversationId &&
                           !m.IsRead &&
@@ -130,7 +125,6 @@ namespace mvc.Hubs
                 .ToListAsync();
         }
 
-      
         public async Task SendMessageToConversation(int conversationId, string message)
         {
             if (string.IsNullOrWhiteSpace(message)) return;
@@ -158,7 +152,6 @@ namespace mvc.Hubs
             conversation.LastMessageAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             
-           
             await Clients.Group("Admins").SendAsync("ReceiveAdminMessage", new
             {
                 ConversationId = conversationId,
@@ -170,7 +163,6 @@ namespace mvc.Hubs
             });
         }
 
-       
         public async Task SendToAdmins(string message)
         {
             if (string.IsNullOrWhiteSpace(message)) return;
@@ -183,7 +175,6 @@ namespace mvc.Hubs
             
             if (user == null) return;
 
-           
             var conversation = new Conversation
             {
                 UserId = currentUserId,
@@ -195,7 +186,6 @@ namespace mvc.Hubs
             _context.Conversations.Add(conversation);
             await _context.SaveChangesAsync();
 
-          
             var chatMessage = new ChatMessage
             {
                 ConversationId = conversation.Id,
@@ -208,7 +198,6 @@ namespace mvc.Hubs
             _context.ChatMessages.Add(chatMessage);
             await _context.SaveChangesAsync();
 
-            
             await Clients.Group("Admins").SendAsync("ReceiveAdminMessage", new
             {
                 ConversationId = conversation.Id,
@@ -220,7 +209,6 @@ namespace mvc.Hubs
             });
         }
 
-        
         public async Task SendReply(int conversationId, string message)
         {
             if (string.IsNullOrWhiteSpace(message)) return;
@@ -228,7 +216,6 @@ namespace mvc.Hubs
             var currentUserId = Context.UserIdentifier;
             
             if (string.IsNullOrEmpty(currentUserId)) return;
-            
             
             if (!await IsCurrentUserAdmin()) return;
 
@@ -238,13 +225,11 @@ namespace mvc.Hubs
 
             if (conversation == null) return;
 
-            
             if (string.IsNullOrEmpty(conversation.AdminId))
             {
                 conversation.AdminId = currentUserId;
             }
 
-            
             var chatMessage = new ChatMessage
             {
                 ConversationId = conversationId,
@@ -258,17 +243,15 @@ namespace mvc.Hubs
             conversation.LastMessageAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            
             var adminUser = await _userManager.FindByIdAsync(currentUserId);
             await Clients.User(conversation.UserId).SendAsync("ReceiveReply", new
             {
                 Message = message,
-                AdminName = adminUser?.UserName ?? "الدعم الفني",
+                AdminName = adminUser?.UserName ?? "Technical Support",
                 Timestamp = DateTime.UtcNow,
                 ConversationId = conversationId
             });
 
-            
             await Clients.Group("Admins").SendAsync("UpdateAdminConversation", new
             {
                 ConversationId = conversationId,
@@ -276,11 +259,10 @@ namespace mvc.Hubs
                 UserName = conversation.User.UserName,
                 LastMessage = message,
                 LastMessageAt = DateTime.UtcNow,
-                AdminName = adminUser?.UserName ?? "الدعم الفني"
+                AdminName = adminUser?.UserName ?? "Technical Support"
             });
         }
         
-      
         public override async Task OnConnectedAsync()
         {
             try
@@ -325,20 +307,14 @@ namespace mvc.Hubs
             await base.OnDisconnectedAsync(exception);
         }
         
-    
         private async Task<bool> IsCurrentUserAdmin()
         {
             var user = await _userManager.GetUserAsync(Context.User);
             return user != null && await _userManager.IsInRoleAsync(user, "Admin");
         }
 
-        /// <summary>
-        /// إرسال رسالة إلى مجموعة محددة (محادثة)
-        /// </summary>
         public async Task SendMessage(int conversationId, string message)
         {
-          
-
             await Clients.Group($"conversation_{conversationId}").SendAsync("ReceiveMessage", new
             {
                 ConversationId = conversationId,
@@ -349,37 +325,24 @@ namespace mvc.Hubs
             });
         }
 
-        /// <summary>
-        /// الانضمام إلى محادثة محددة لتلقي الإشعارات الخاصة بها
-        /// </summary>
         public async Task JoinConversation(int conversationId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"conversation_{conversationId}");
         }
 
-        /// <summary>
-        /// مغادرة محادثة محددة
-        /// </summary>
         public async Task LeaveConversation(int conversationId)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conversation_{conversationId}");
         }
 
-        /// <summary>
-        /// الانضمام إلى قناة المشرف لتلقي إشعارات جميع المحادثات
-        /// </summary>
         [Authorize(Roles = "Admin")]
         public async Task JoinAdminChannel()
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, "admin_channel");
         }
 
-        /// <summary>
-        /// تحديث حالة المحادثة (مثل: تمت القراءة، مؤرشفة)
-        /// </summary>
         public async Task UpdateConversationStatus(int conversationId, string status)
         {
-           
             await Clients.Group("admin_channel").SendAsync("ConversationUpdated", conversationId);
         }
     }

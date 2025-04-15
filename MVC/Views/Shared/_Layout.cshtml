@@ -543,13 +543,20 @@
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                         @if (User.IsInRole("Admin"))
                                         {
-                                            <li><a class="dropdown-item" href="/Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                                            <li><a class="dropdown-item" href="/AdminChat"><i class="fas fa-headset"></i> Customer Services</a></li>
-                                            <li><a class="dropdown-item" href="/Business/GetAll"><i class="fas fa-list"></i> Manage Listings</a></li>
-                                            <li><a class="dropdown-item" href="/Category"><i class="fas fa-tags"></i> Manage Categories</a></li>
-                                            <li><a class="dropdown-item" href="/Package"><i class="fas fa-box"></i> Manage Packages</a></li>
-                                            <li><a class="dropdown-item" href="/Payment/Admin"><i class="fas fa-money-bill-wave"></i> Payments</a></li>
-                                            <li><a class="dropdown-item" href="/Account/RegisterAdmin"><i class="fas fa-user-plus"></i> Add Admin</a></li>
+                                         
+                                             
+                                                    <li><a class="dropdown-item" href="/Dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                                    <li><a class="dropdown-item" href="@Url.Action("GetAll", "BusinessAdmin")"><i class="fas fa-store me-2"></i>Businesses</a></li>
+                                                    <li><a class="dropdown-item" href="@Url.Action("Index", "CategoryAdmin")"><i class="fas fa-folder me-2"></i>Categories</a></li>
+                                                    <li><a class="dropdown-item" href="@Url.Action("GetAll", "Package")"><i class="fas fa-box me-2"></i>Packages</a></li>
+                                                    <li><a class="dropdown-item" href="#"><i class="fas fa-users me-2"></i>Users</a></li>
+                                                    <li><a class="dropdown-item" href="@Url.Action("Index", "AdminChat")"><i class="fas fa-comments me-2"></i>Support Chat</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item" href="#"><i class="fas fa-star me-2"></i>Reviews</a></li>
+                                                    <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>Reports</a></li>
+                                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                                                
+                                           
                                         }
                                         else
                                         {

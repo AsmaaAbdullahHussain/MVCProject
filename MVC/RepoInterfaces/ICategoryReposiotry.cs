@@ -4,7 +4,7 @@ namespace mvc.RepoInterfaces
 {
     public interface ICategoryReposiotry:IGeniricRepository<int,Category>
     {
-        //  Task<Category> GetByNameAsync(string name);
+       
 
         public interface ICategoryRepository
         {

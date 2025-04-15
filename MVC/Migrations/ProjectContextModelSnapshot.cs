@@ -606,25 +606,25 @@ namespace mvc.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "الباقة الأساسية المجانية للأعمال الصغيرة",
+                            Description = "Free basic package for small businesses",
                             MonthlyPrice = 0m,
-                            Name = "الباقة الأساسية",
+                            Name = "Basic Package",
                             YearlyPrice = 0m
                         },
                         new
                         {
                             Id = 2,
-                            Description = "باقة متكاملة للأعمال المتوسطة مع مزايا إضافية",
+                            Description = "Comprehensive package for medium businesses with additional features",
                             MonthlyPrice = 19.99m,
-                            Name = "الباقة المتميزة",
+                            Name = "Premium Package",
                             YearlyPrice = 199.99m
                         },
                         new
                         {
                             Id = 3,
-                            Description = "الباقة الشاملة للأعمال التجارية الكبيرة مع جميع المميزات المتاحة",
+                            Description = "Complete package for large businesses with all available features",
                             MonthlyPrice = 49.99m,
-                            Name = "الباقة المتقدمة",
+                            Name = "Advanced Package",
                             YearlyPrice = 499.99m
                         });
                 });
@@ -658,315 +658,315 @@ namespace mvc.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "إضافة نشاط تجاري واحد",
+                            Description = "Add one business",
                             IsIncluded = true,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 2,
-                            Description = "عرض بيانات النشاط الأساسية",
+                            Description = "Display basic business information",
                             IsIncluded = true,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 3,
-                            Description = "إضافة صورة رئيسية واحدة",
+                            Description = "Add one main image",
                             IsIncluded = true,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 4,
-                            Description = "ظهور في نتائج البحث",
+                            Description = "Appear in search results",
                             IsIncluded = true,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 5,
-                            Description = "إضافة معلومات التواصل الأساسية",
+                            Description = "Add basic contact information",
                             IsIncluded = true,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 6,
-                            Description = "إضافة ساعات العمل",
+                            Description = "Add business hours",
                             IsIncluded = true,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 7,
-                            Description = "الدعم الفني عبر البريد الإلكتروني",
+                            Description = "Email technical support",
                             IsIncluded = true,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 8,
-                            Description = "إضافة معرض صور متعددة",
+                            Description = "Add multiple images gallery",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 9,
-                            Description = "الظهور في القوائم المميزة",
+                            Description = "Featured listings",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 10,
-                            Description = "الترويج على وسائل التواصل الاجتماعي",
+                            Description = "Social media promotion",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 11,
-                            Description = "عرض تقارير وإحصائيات الزيارات",
+                            Description = "View visits statistics and reports",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 12,
-                            Description = "إضافة عروض وخصومات",
+                            Description = "Add offers and discounts",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 13,
-                            Description = "الدعم الفني على مدار الساعة",
+                            Description = "24/7 technical support",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 14,
-                            Description = "إمكانية الحجز المباشر",
+                            Description = "Direct booking capability",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 15,
-                            Description = "إنشاء متجر إلكتروني",
+                            Description = "Create online store",
                             IsIncluded = false,
                             PackageId = 1
                         },
                         new
                         {
                             Id = 16,
-                            Description = "إضافة نشاط تجاري واحد",
+                            Description = "Add one business",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 17,
-                            Description = "عرض بيانات النشاط الأساسية",
+                            Description = "Display basic business information",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 18,
-                            Description = "إضافة صورة رئيسية واحدة",
+                            Description = "Add one main image",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 19,
-                            Description = "ظهور في نتائج البحث",
+                            Description = "Appear in search results",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 20,
-                            Description = "إضافة معلومات التواصل الأساسية",
+                            Description = "Add basic contact information",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 21,
-                            Description = "إضافة ساعات العمل",
+                            Description = "Add business hours",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 22,
-                            Description = "الدعم الفني عبر البريد الإلكتروني",
+                            Description = "Email technical support",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 23,
-                            Description = "إضافة معرض صور متعددة (حتى 15 صورة)",
+                            Description = "Add multiple images gallery (up to 15 images)",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 24,
-                            Description = "الظهور في القوائم المميزة",
+                            Description = "Featured listings",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 25,
-                            Description = "الترويج على وسائل التواصل الاجتماعي",
+                            Description = "Social media promotion",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 26,
-                            Description = "عرض تقارير وإحصائيات الزيارات",
+                            Description = "View visits statistics and reports",
                             IsIncluded = true,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 27,
-                            Description = "إضافة عروض وخصومات",
+                            Description = "Add offers and discounts",
                             IsIncluded = false,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 28,
-                            Description = "الدعم الفني على مدار الساعة",
+                            Description = "24/7 technical support",
                             IsIncluded = false,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 29,
-                            Description = "إمكانية الحجز المباشر",
+                            Description = "Direct booking capability",
                             IsIncluded = false,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 30,
-                            Description = "إنشاء متجر إلكتروني",
+                            Description = "Create online store",
                             IsIncluded = false,
                             PackageId = 2
                         },
                         new
                         {
                             Id = 31,
-                            Description = "إضافة نشاط تجاري واحد",
+                            Description = "Add one business",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 32,
-                            Description = "عرض بيانات النشاط الأساسية",
+                            Description = "Display basic business information",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 33,
-                            Description = "إضافة صورة رئيسية واحدة",
+                            Description = "Add one main image",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 34,
-                            Description = "ظهور في نتائج البحث",
+                            Description = "Appear in search results",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 35,
-                            Description = "إضافة معلومات التواصل الأساسية",
+                            Description = "Add basic contact information",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 36,
-                            Description = "إضافة ساعات العمل",
+                            Description = "Add business hours",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 37,
-                            Description = "الدعم الفني عبر البريد الإلكتروني",
+                            Description = "Email technical support",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 38,
-                            Description = "إضافة معرض صور متعددة (عدد غير محدود)",
+                            Description = "Add multiple images gallery (unlimited)",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 39,
-                            Description = "الظهور في القوائم المميزة",
+                            Description = "Featured listings",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 40,
-                            Description = "الترويج على وسائل التواصل الاجتماعي",
+                            Description = "Social media promotion",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 41,
-                            Description = "عرض تقارير وإحصائيات الزيارات",
+                            Description = "View visits statistics and reports",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 42,
-                            Description = "إضافة عروض وخصومات",
+                            Description = "Add offers and discounts",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 43,
-                            Description = "الدعم الفني على مدار الساعة",
+                            Description = "24/7 technical support",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 44,
-                            Description = "إمكانية الحجز المباشر",
+                            Description = "Direct booking capability",
                             IsIncluded = true,
                             PackageId = 3
                         },
                         new
                         {
                             Id = 45,
-                            Description = "إنشاء متجر إلكتروني",
+                            Description = "Create online store",
                             IsIncluded = true,
                             PackageId = 3
                         });

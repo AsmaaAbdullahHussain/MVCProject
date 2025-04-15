@@ -23,11 +23,7 @@ namespace mvc.Models
 
         public  Business? Business { get; set; }
 
-        //public Ad()
-        //{
-        //    StartDate = DateTime.UtcNow;
-        //    IsActive = true;
-        //}
+      
     }
 
     

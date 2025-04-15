@@ -329,7 +329,7 @@
     }
 </style>
 
-<!-- Search Header -->
+
 <section class="search-header">
     <div class="container">
         <h1 class="search-title text-center">Search Results</h1>
@@ -345,7 +345,7 @@
 </section>
 
 <div class="container">
-    <!-- Filter Bar -->
+  
     <div class="filter-bar">
         <div class="row">
             <div class="col-md-8">
@@ -386,12 +386,12 @@
         </div>
     </div>
 
-    <!-- Results Count -->
+ 
     <div class="result-count">
         Found <strong>@Model.Count</strong> results for <strong>"@searchTerm"</strong>
     </div>
 
-    <!-- Results List -->
+ 
     @if (Model.Any())
     {
         <div class="results-list">
@@ -495,35 +495,34 @@
 
 @section Scripts {
     <script>
-        // Function to handle filters and sorting
+     
         function applyFilters() {
-            // Get all filter values
+          
             const premium = document.querySelector('input[name="premium"]').checked;
             const topRated = document.querySelector('input[name="topRated"]').checked;
             const verified = document.querySelector('input[name="verified"]').checked;
             const hasReviews = document.querySelector('input[name="hasReviews"]').checked;
             const sortBy = document.getElementById('sortOption').value;
             
-            // Build the query string
+          
             let queryParams = new URLSearchParams(window.location.search);
             
-            // Add filter parameters
+          
             queryParams.set('premium', premium);
             queryParams.set('topRated', topRated);
             queryParams.set('verified', verified);
             queryParams.set('hasReviews', hasReviews);
             queryParams.set('sort', sortBy);
             
-            // Reset to page 1 when filters change
+           
             queryParams.set('pageNumber', 1);
             
-            // Redirect with new filters
             window.location.href = window.location.pathname + '?' + queryParams.toString();
         }
         
-        // Set up filter change listeners
+      
         document.addEventListener('DOMContentLoaded', function() {
-            // Get filters from URL and set checkboxes
+          
             const params = new URLSearchParams(window.location.search);
             
             if (params.get('premium') === 'true')
@@ -538,17 +537,17 @@
             if (params.get('hasReviews') === 'true')
                 document.querySelector('input[name="hasReviews"]').checked = true;
                 
-            // Set sort option
+           
             if (params.get('sort'))
                 document.getElementById('sortOption').value = params.get('sort');
                 
-            // Add change listeners to all filters
+           
             document.querySelectorAll('.filter-option input').forEach(filter => {
                 filter.addEventListener('change', applyFilters);
             });
         });
         
-        // Function to handle sorting
+    
         function sortResults() {
             applyFilters();
         }

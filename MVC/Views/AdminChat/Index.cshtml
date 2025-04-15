@@ -179,29 +179,29 @@
 @section Scripts {
     <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
     <script>
-        // Create SignalR connection
+      
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/chathub")
             .withAutomaticReconnect()
             .build();
         
-        // Global variables
+       
         let currentConversationId = null;
         let conversations = [];
-        let filterType = 'all'; // 'all' or 'unread'
+        let filterType = 'all'; 
         
-        // Start connection
+       
         connection.start()
             .then(() => {
                 console.log("SignalR Connected");
                 loadAdminConversations();
                 
-                // Update conversations every minute
+                
                 setInterval(loadAdminConversations, 60000);
             })
             .catch(err => console.error("SignalR Connection Error: ", err));
         
-        // Load admin conversations
+      
         async function loadAdminConversations() {
             try {
                 conversations = await connection.invoke("GetAdminConversations");
@@ -213,7 +213,7 @@
             }
         }
         
-        // Render conversations list
+       
         function renderConversationsList(conversations) {
             const container = document.getElementById("conversationsList");
             container.innerHTML = "";
@@ -232,13 +232,13 @@
                 return;
             }
             
-            // Sort conversations: unread first, then by last message time
+           
             filteredConversations.sort((a, b) => {
-                // Unread first
+               
                 if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
                 if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
                 
-                // Sort by last message time (newest first)
+               
                 return new Date(b.lastMessageAt) - new Date(a.lastMessageAt);
             });
             
@@ -277,7 +277,7 @@
             });
         }
         
-        // Update total unread badge
+        
         function updateTotalUnreadBadge() {
             const totalUnread = conversations.reduce((total, conv) => total + conv.unreadCount, 0);
             const badge = document.getElementById('totalUnreadBadge');
@@ -290,34 +290,34 @@
             }
         }
         
-        // Select conversation
+       
         function selectConversation(conversationId) {
             currentConversationId = conversationId;
             
-            // Update active item in list
+           
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.id == conversationId);
             });
             
-            // Update conversation title
+          
             const conversation = conversations.find(c => c.id == conversationId);
             if (conversation) {
                 document.getElementById('conversationTitle').innerHTML = `
                     <i class="fas fa-user me-2"></i>${escapeHtml(conversation.userName)}
                 `;
                 
-                // Show close conversation button
+               
                 document.getElementById('closeConversationBtn').classList.remove('d-none');
             }
             
-            // Enable input field
+           
             document.getElementById('messageInputContainer').classList.remove('d-none');
             
-            // Load conversation messages
+           
             loadConversationMessages(conversationId);
         }
         
-        // Load conversation messages
+       
         async function loadConversationMessages(conversationId) {
             try {
                 const messagesContainer = document.getElementById('messagesContainer');
@@ -332,7 +332,7 @@
                 const messages = await connection.invoke("GetConversationMessages", conversationId);
                 renderMessages(messages);
                 
-                // Update conversations list (to update unread count)
+              
                 loadAdminConversations();
                 
             } catch (err) {
@@ -341,7 +341,7 @@
             }
         }
         
-        // Render messages
+        
         function renderMessages(messages) {
             const container = document.getElementById('messagesContainer');
             container.innerHTML = "";
@@ -383,11 +383,11 @@
                 container.appendChild(messageDiv);
             });
             
-            // Scroll to latest message
+         
             container.scrollTop = container.scrollHeight;
         }
         
-        // Send message
+      
         document.getElementById('messageForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -401,13 +401,13 @@
             messageInput.value = '';
             
             try {
-                // Add temporary message to view
+              
                 addTemporaryMessage(message);
                 
-                // Send message
+               
                 await connection.invoke("SendReply", currentConversationId, message);
                 
-                // Update conversation after sending
+               
                 loadConversationMessages(currentConversationId);
                 
             } catch (err) {
@@ -416,11 +416,11 @@
             }
         });
         
-        // Add temporary message to view
+      
         function addTemporaryMessage(content) {
             const container = document.getElementById('messagesContainer');
             
-            // Remove "no messages" if present
+           
             const emptyMessage = container.querySelector('.text-center.py-4');
             if (emptyMessage) {
                 container.innerHTML = "";
@@ -448,27 +448,27 @@
             container.scrollTop = container.scrollHeight;
         }
         
-        // Response to new messages
+        
         connection.on("ReceiveAdminMessage", function(data) {
-            // Update conversations list
+           
             loadAdminConversations();
             
-            // Show notification
+           
             showToast(`New message from ${data.senderName}`, data.message);
         });
         
-        // Update existing conversation
+       
         connection.on("UpdateAdminConversation", function(data) {
-            // Update conversations list
+           
             loadAdminConversations();
             
-            // Update current conversation if open
+           
             if (currentConversationId && currentConversationId == data.conversationId) {
                 loadConversationMessages(currentConversationId);
             }
         });
         
-        // Quick replies
+       
         document.querySelectorAll('.quick-reply').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -477,7 +477,7 @@
             });
         });
         
-        // Toggle conversation filter
+
         document.getElementById('showAllBtn').addEventListener('click', function() {
             filterType = 'all';
             this.classList.add('active');
@@ -492,12 +492,12 @@
             renderConversationsList(conversations);
         });
         
-        // Refresh conversations button
+        
         document.getElementById('refreshConversationsBtn').addEventListener('click', loadAdminConversations);
         
-        // Close conversation button
+       
         document.getElementById('closeConversationBtn').addEventListener('click', function() {
-            // Reset view
+          
             document.getElementById('messagesContainer').innerHTML = `
                 <div class="text-center py-5">
                     <i class="fas fa-headset text-muted mb-3" style="font-size: 4rem;"></i>
@@ -513,7 +513,7 @@
             document.getElementById('messageInputContainer').classList.add('d-none');
             this.classList.add('d-none');
             
-            // Deactivate all items in list
+           
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
             });
@@ -521,7 +521,7 @@
             currentConversationId = null;
         });
         
-        // Helper functions
+       
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');

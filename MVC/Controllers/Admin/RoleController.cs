@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace mvc.Controllers
+namespace mvc.Controllers.Admin
 {
     [Authorize(Roles = "Admin")]
+    [Route("Admin/[controller]/[action]")]
     public class RoleController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;

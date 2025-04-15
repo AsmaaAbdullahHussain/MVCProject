@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using mvc.Models.Authorize;
 using mvc.ViewModels;
-using System.Security.Claims;
+
 
 namespace mvc.Controllers
 {
     public class AccountController : Controller
     {
-        UserManager<ApplicationUser> _userManger; //to deal with db
-        SignInManager<ApplicationUser> _sinInManger;//to make cookie
+        UserManager<ApplicationUser> _userManger; 
+        SignInManager<ApplicationUser> _sinInManger;
         public AccountController(UserManager<ApplicationUser>userManger,SignInManager<ApplicationUser>sinInManger)
         {
             _userManger = userManger;
@@ -161,8 +161,7 @@ namespace mvc.Controllers
                 {
 
 
-                    // Add role
-                    await _userManger.AddToRoleAsync(userApp, "Admin");//AddToRoleAsync ليس  case sestive
+                    await _userManger.AddToRoleAsync(userApp, "Admin");
 
                     await _sinInManger.SignInAsync(userApp, isPersistent: false);
 
@@ -172,7 +171,7 @@ namespace mvc.Controllers
                 foreach (var error in result.Errors)
                 {
 
-                    ModelState.AddModelError("", error.Description); // general error
+                    ModelState.AddModelError("", error.Description); 
                 }
             }
 
